@@ -1,2 +1,2 @@
 # Mina.CA
-Web Based OpenSSL
+Web Based OpenSSL Certificate Authority
