@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block main %}
+  <div class="starter-template">
+    <div class="row">
+      <div class="col-6">
+        <h4>인증기관 추가</h4>
+        <form>
+          <div class="form-group row">
+            <label for="inputCAtitle"
+                   class="col-sm-3 col-form-label">{{ form.catitle.label }}</label>
+            <div class="col-sm-9">
+              {{ form.catitle(class_="form-control", id="inputCAtitle", placeholder="인증기관명", **{"v-model": "ca_info.catitle"}) }}
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="inputCATop"
+                   class="col-sm-3 col-form-label">{{ form.catop.label }}</label>
+            <div class="col-sm-9">
+              {{ form.catop(class_="form-control", id="inputCATop", placeholder="CA 디렉터리", **{"v-model": "ca_info.catop"}) }}
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="inputCAKey"
+                   class="col-sm-3 col-form-label">{{ form.cakey.label }}</label>
+            <div class="col-sm-9">
+              {{ form.cakey(class_="form-control", id="inputCAKey", placeholder="CA 비밀키 파일명", **{"v-model": "ca_info.cakey"}) }}
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="inputCAReq"
+                   class="col-sm-3 col-form-label">{{ form.careq.label }}</label>
+            <div class="col-sm-9">
+              {{ form.careq(class_="form-control", id="inputCAReq", placeholder="CA 인증 요청서 파일명", **{"v-model": "ca_info.careq"}) }}
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="inputCACert"
+                   class="col-sm-3 col-form-label">{{ form.cacert.label }}</label>
+            <div class="col-sm-9">
+              {{ form.cacert(class_="form-control", id="inputCACert", placeholder="CA 인증기관 파일명", **{"v-model": "ca_info.cacert"}) }}
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="inputCADays"
+                   class="col-sm-3 col-form-label">{{ form.cadays.label }}</label>
+            <div class="col-sm-9">
+              {{ form.cadays(type="number", class_="form-control", id="inputCADays", placeholder="인증기관 유효기간(D)", **{"v-model": "ca_info.cadays"}) }}
+            </div>
+          </div>
+
+          <div class="form-group row">
+            <div class="col-sm-10">
+              <button type="button" class="btn btn-primary" @click.prevent="submit">추가</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+    {#<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.10/vue.min.js" integrity="sha256-chlNFSVx3TdcQ2Xlw7SvnbLAavAQLO0Y/LBiWX04viY=" crossorigin="anonymous"></script>#}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.10/vue.js" integrity="sha256-ufGElb3TnOtzl5E4c/qQnZFGP+FYEZj5kbSEdJNrw0A=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js" integrity="sha256-S1J4GVHHDMiirir9qsXWc8ZWw74PHHafpsHp5PXtjTs=" crossorigin="anonymous"></script>
+    <script>
+    new Vue({
+      el: "form",
+      data: {
+        ca_info: {
+          catitle: "",
+          catop: "",
+          cakey: "",
+          careq: "",
+          cacert: "",
+          cadays: ""
+        }
+      },
+      methods: {
+        submit: function () {
+          axios.post("{{ url_for('ca_add_post') }}", this.ca_info).then(function (res) {
+            console.log(res)
+          })
+        }
+      }
+    })
+    </script>
+  </div>
+{% endblock %}
