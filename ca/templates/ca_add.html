@@ -24,21 +24,21 @@
             <label for="inputCAKey"
                    class="col-sm-3 col-form-label">{{ form.cakey.label }}</label>
             <div class="col-sm-9">
-              {{ form.cakey(class_="form-control", id="inputCAKey", placeholder="CA 비밀키 파일명", **{"v-model": "ca_info.cakey"}) }}
+              {{ form.cakey(class_="form-control", id="inputCAKey", placeholder="입력하지 않으시면 cakey.pem이 사용됩니다", **{"v-model": "ca_info.cakey"}) }}
             </div>
           </div>
           <div class="form-group row">
             <label for="inputCAReq"
                    class="col-sm-3 col-form-label">{{ form.careq.label }}</label>
             <div class="col-sm-9">
-              {{ form.careq(class_="form-control", id="inputCAReq", placeholder="CA 인증 요청서 파일명", **{"v-model": "ca_info.careq"}) }}
+              {{ form.careq(class_="form-control", id="inputCAReq", placeholder="입력하지 않으시면 careq.pem이 사용됩니다", **{"v-model": "ca_info.careq"}) }}
             </div>
           </div>
           <div class="form-group row">
             <label for="inputCACert"
                    class="col-sm-3 col-form-label">{{ form.cacert.label }}</label>
             <div class="col-sm-9">
-              {{ form.cacert(class_="form-control", id="inputCACert", placeholder="CA 인증기관 파일명", **{"v-model": "ca_info.cacert"}) }}
+              {{ form.cacert(class_="form-control", id="inputCACert", placeholder="입력하지 않으시면 cacert.pem이 사용됩니다", **{"v-model": "ca_info.cacert"}) }}
             </div>
           </div>
           <div class="form-group row">

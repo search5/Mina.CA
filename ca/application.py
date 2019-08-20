@@ -37,7 +37,14 @@ def ca_add_post():
     ca_record = CA()
 
     # WTForms는 초깃값의 인스턴스는 MultiDict를 받았을때만 정상 출력한다.
-    form = CAForm(MultiDict(request.get_json()))
+    req_json = request.get_json()
+
+    # 기본값 세팅
+    if not req_json['cakey']: req_json['cakey'] = 'cakey.pem'
+    if req_json['careq']: req_json['careq'] = 'careq.pem'
+    if req_json['cacert']: req_json['cacert'] = 'cacert.pem'
+
+    form = CAForm(MultiDict(req_json))
 
     if form.validate():
         form.populate_obj(ca_record)
