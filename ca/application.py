@@ -2,11 +2,15 @@ import os
 import uuid
 from pathlib import Path
 
-from flask import Flask, render_template, request, jsonify
+import paginate as paginate
+from flask import Flask, render_template, request, jsonify, url_for
+from paginate_sqlalchemy import SqlalchemyOrmWrapper
+from sqlalchemy import desc
 from werkzeug.datastructures import MultiDict
 
 from ca.database import db_session
 from ca.forms.CAForm import CAForm
+from ca.lib import paginate_link_tag
 from ca.models import CA
 
 app = Flask(__name__)
@@ -19,8 +23,36 @@ def mina_ca_main():
 
 @app.route("/ca")
 def ca_list():
-    # 여기서 CA 목록 받기
-    return render_template("index.html")
+    current_page = request.args.get("page", 1, type=int)
+    search_option = request.args.get("search_option", '')
+    search_word = request.args.get("search_word", '')
+
+    if search_option:
+        search_column = getattr(CA, search_option)
+
+    page_url = url_for("ca_list")
+    if search_word:
+        page_url = url_for("ca_list", search_option=search_option, search_word=search_word)
+        page_url = str(page_url) + "&page=$page"
+    else:
+        page_url = str(page_url) + "?page=$page"
+
+    items_per_page = 10
+
+    records = db_session.query(CA)
+    if search_word:
+        records = records.filter(search_column.ilike('%{}%'.format(search_word)))
+    records = records.order_by(desc(CA.idx))
+    total_cnt = records.count()
+
+    paginator = paginate.Page(records, current_page, page_url=page_url,
+                              items_per_page=items_per_page,
+                              wrapper_class=SqlalchemyOrmWrapper)
+
+    return render_template("index.html", paginator=paginator,
+                           paginate_link_tag=paginate_link_tag,
+                           page_url=page_url, items_per_page=items_per_page,
+                           total_cnt=total_cnt, page=current_page)
 
 
 @app.route("/ca/add")
@@ -37,7 +69,14 @@ def ca_add_post():
     ca_record = CA()
 
     # WTForms는 초깃값의 인스턴스는 MultiDict를 받았을때만 정상 출력한다.
-    form = CAForm(MultiDict(request.get_json()))
+    req_json = request.get_json()
+
+    # 기본값 세팅
+    if not req_json['cakey']: req_json['cakey'] = 'cakey.pem'
+    if req_json['careq']: req_json['careq'] = 'careq.pem'
+    if req_json['cacert']: req_json['cacert'] = 'cacert.pem'
+
+    form = CAForm(MultiDict(req_json))
 
     if form.validate():
         form.populate_obj(ca_record)
