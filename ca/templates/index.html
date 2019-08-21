@@ -2,7 +2,7 @@
 
 {% block main %}
 <div class="starter-template">
-  <h1>Mina.CA</h1>
+  <img src="{{ url_for('static', filename='img/mina_ca.png') }}">
   <p class="lead">Web Based Openssl Certificate Authority Manager</p>
   <p class="lead">만들고 있음. 이지호 선생 작품임(이걸 왜 만드는거냐? 엉?)</p>
   <a href="{{ url_for('ca_add') }}" class="btn btn-primary">CA 추가</a>
