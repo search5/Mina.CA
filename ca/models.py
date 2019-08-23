@@ -58,5 +58,5 @@ class Certficate(Base):
     cert_days = Column(String(255), comment='인증서 유효기간(일단위)', doc='유효기간은 인증기관 유효일수보다 작아야 한다')
     cert_config = Column(Text, comment='CA 설정 파일 내용(인증서 별로 존재)', doc='왜냐하면 SN을 사용해야 하기 때문이다(추가 검증 필요)')
     cert_status = Column(String(100), comment='CSR, CERTIFICATED, REVOKE')
-    history = Column(JSON, comment='인증서 이력')
+    history = Column(JSON, default=[], comment='인증서 이력')
     created_date = Column(DateTime, default=func.now(), comment='생성일자')

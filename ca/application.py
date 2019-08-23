@@ -7,6 +7,7 @@ import paginate as paginate
 import pexpect
 from flask import Flask, render_template, request, jsonify, url_for, redirect, flash
 from paginate_sqlalchemy import SqlalchemyOrmWrapper
+from slugify import slugify
 from sqlalchemy import desc, Column
 from werkzeug.datastructures import MultiDict
 
@@ -123,12 +124,13 @@ def ca_add_post():
 
                 REQ = "openssl req -config {ssl_cnf}".format(ssl_cnf=ssl_cnf.name)
 
+                CAKEY = (new_ca_root / "private" / "cakey.pem").resolve()
+                CAREQ = (new_ca_root / "careq.pem").resolve()
+                CACERT = (new_ca_root / "cacert.pem").resolve()
+
                 # TODO: extra options... (1 args)
                 RET1 = "{REQ} -new -keyout {CAKEY} -out {CAREQ}".format(
-                    REQ=REQ,
-                    CAKEY=new_ca_root / "private" / "cakey.pem",
-                    CAREQ=new_ca_root / "careq.pem"
-                )
+                    REQ=str(REQ), CAKEY=str(CAKEY), CAREQ=str(CAREQ))
 
                 ssl_req = pexpect.spawn(RET1, encoding='utf-8')
                 ssl_req.expect('Enter PEM pass phrase:')
@@ -164,12 +166,7 @@ def ca_add_post():
                         " -keyfile {CAKEY} -selfsign"
                         " -extensions v3_ca"
                         " -infiles {CAREQ}").format(
-                    CA=CA_CMD,
-                    CACERT=new_ca_root / "cacert.pem",
-                    CADAYS=ca_record.cadays,
-                    CAKEY=new_ca_root / "private" / "cakey.pem",
-                    CAREQ=new_ca_root / "careq.pem"
-                )
+                    CA=CA_CMD, CACERT=str(CACERT), CADAYS=str(ca_record.cadays), CAKEY=str(CAKEY), CAREQ=str(CAREQ))
 
                 ssl_ca = pexpect.spawn(RET2, encoding='utf-8')
                 ssl_ca.expect('Enter pass phrase for.*:')
@@ -177,7 +174,7 @@ def ca_add_post():
                 ssl_ca.expect(pexpect.EOF)
                 ssl_ca.wait()
 
-                print("CA certificate is in {CACERT}".format(CACERT=new_ca_root / "cacert.pem"))
+                print("CA certificate is in {CACERT}".format(CACERT=str(CACERT)))
 
         db_session.add(ca_record)
         db_session.commit()
@@ -196,7 +193,38 @@ def ca_view(catop):
 
     left_ca_days = (ca_record.created_date + timedelta(days=int(ca_record.cadays))) - datetime.now()
 
-    return render_template('ca_view.html', ca_record=ca_record, left_ca_days=left_ca_days.days)
+    current_page = request.args.get("page", 1, type=int)
+    search_option = request.args.get("search_option", '')
+    search_word = request.args.get("search_word", '')
+
+    search_column: Column = None
+    if search_option:
+        search_column: Column = getattr(Certficate, search_option)
+
+    page_url = url_for("ca_view", catop=ca_record.catop)
+    if search_word:
+        page_url = url_for("ca_view", catop=ca_record.catop, search_option=search_option, search_word=search_word)
+        page_url = str(page_url) + "&page=$page"
+    else:
+        page_url = str(page_url) + "?page=$page"
+
+    items_per_page = 10
+
+    records = db_session.query(Certficate)
+    if search_word:
+        records = records.filter(search_column.ilike('%{}%'.format(search_word)))
+    records = records.order_by(desc(Certficate.id))
+    total_cnt = records.count()
+
+    paginator = paginate.Page(records, current_page, page_url=page_url,
+                              items_per_page=items_per_page,
+                              wrapper_class=SqlalchemyOrmWrapper)
+
+    return render_template("ca_view.html", paginator=paginator,
+                           paginate_link_tag=paginate_link_tag,
+                           page_url=page_url, items_per_page=items_per_page,
+                           total_cnt=total_cnt, page=current_page,
+                           ca_record=ca_record, left_ca_days=left_ca_days.days)
 
 
 @app.route("/ca/<catop>/csr/new")
@@ -232,6 +260,8 @@ def cert_csr_new_post(catop):
     if form.validate():
         form.populate_obj(cert_record)
 
+        cert_record.cert_status = "CSR"
+
         ssl_cnf = NamedTemporaryFile("w+")
         ssl_cnf.write(ca_record.caconfig)
         ssl_cnf.seek(0)
@@ -240,13 +270,17 @@ def cert_csr_new_post(catop):
 
         new_ca_root = Path(os.environ["CA_ROOTS"]) / ca_record.catop
 
+        certificate_name = slugify(cert_record.cert_title)
+
+        certs_dir = new_ca_root / "certs" / certificate_name
+        certs_dir.mkdir(parents=True, exist_ok=True)
+
+        NEWKEY = (certs_dir / "key.pem").resolve()
+        NEWREQ = (certs_dir / "csr.pem").resolve()
+
         # TODO: extra options... (1 args)
         RET = "{REQ} -new -keyout {NEWKEY} -out {NEWREQ} -days {CERT_DAYS}".format(
-            REQ=REQ,
-            NEWKEY=new_ca_root / "private" / "cakey.pem",
-            NEWREQ=new_ca_root / "careq.pem",
-            CERT_DAYS=cert_record.cert_days
-        )
+            REQ=REQ, NEWKEY=str(NEWKEY), NEWREQ=str(NEWREQ), CERT_DAYS=cert_record.cert_days)
 
         ssl_req = pexpect.spawn(RET, encoding='utf-8')
         ssl_req.expect('Enter PEM pass phrase:')
@@ -275,9 +309,13 @@ def cert_csr_new_post(catop):
         ssl_req.expect(pexpect.EOF)
         ssl_req.wait()
 
-        print("Request is in {NEWREQ}, private key is in {NEWKEY}".format(
-            NEWKEY=new_ca_root / "private" / "cakey.pem",
-            NEWREQ=new_ca_root / "careq.pem"))
+        print("Request is in {NEWREQ}, private key is in {NEWKEY}".format(NEWKEY=str(NEWKEY), NEWREQ=str(NEWREQ)))
+
+        # 히스토리 남기기
+        cert_record.parent_id = ca_record.id
+        cert_record.history = [{
+            "DATE": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "NOTE": "CSR 생성됨"
+        }]
 
         db_session.add(cert_record)
         db_session.commit()

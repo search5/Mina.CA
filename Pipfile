@@ -16,6 +16,7 @@ wtforms = "*"
 paginate = "*"
 paginate-sqlalchemy = "*"
 sqlalchemy-stubs = "*"
+python-slugify = {extras = ["unidecode"],version = "*"}
 
 [requires]
 python_version = "3.7"
