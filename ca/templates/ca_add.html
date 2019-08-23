@@ -125,7 +125,7 @@
         submit: function () {
           axios.post("{{ url_for('ca_add_post') }}", this.ca_info).then(function (res) {
             alert('정상적으로 생성되었습니다')
-            location.href = '{{ url_for('ca_list') }}'
+            //location.href = '{{ url_for('ca_list') }}'
           })
         }
       }
