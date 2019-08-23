@@ -1,0 +1,32 @@
+{% extends "ca_view_base.html" %}
+
+{% block ca_view %}
+<div class="row">
+  <div class="col-12">
+    <table class="table table-hover">
+      <tr>
+        <th>번호</th>
+        <th>인증요청자</th>
+        <th>Common Name</th>
+        <th>인증서 상태</th>
+        <th>요청일</th>
+        <th>인증일</th>
+      </tr>
+      <tr>
+        <td>1</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+    </table>
+    <div class="row">
+      <div class="col-12 text-center">Paging...</div>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-12"><a href="{{ url_for('ca_csr_new', catop=ca_record.catop) }}" class="btn btn-success">요청서 생성</a></div>
+</div>
+{% endblock %}

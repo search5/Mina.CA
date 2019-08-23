@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block main %}
+<div class="starter-template">
+  <img src="{{ url_for('static', filename='img/mina_ca.png') }}">
+  <p class="lead">Web Based Openssl Certificate Authority Manager</p>
+  <div class="card">
+    <div class="card-body">
+      <table class="table table-hover is-responsive">
+        <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">인증기관명</th>
+          <th scope="col">인증기관 타입</th>
+          <th scope="col">회사명</th>
+          <th scope="col">도메인</th>
+          <th scope="col">생성시간</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for row in paginator %}
+          <tr>
+            <th>{{ (total_cnt - (items_per_page * (page - 1))) - loop.index0 }}</th>
+            <td><a href="{{ url_for('ca_view', catop=row.catop) }}">{{ row.catitle }}</a></td>
+            <td>{{ row.catype }}</td>
+            <td>{{ row.organization_name }}</td>
+            <td>{{ row.common_name }}</td>
+            <td>{{ row.created_date }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer">
+      <div class="row">
+        <div class="col-6">
+          <nav>
+            <ul class="pagination justify-content-start">
+              {{ paginator.pager(
+                   dotdot_attr={'class':'spacer'},
+                   symbol_first='',
+                   symbol_last='',
+                   symbol_previous='<a href="#"><span>&laquo;</span></a>',
+                   symbol_next='<a href="#"><span>&raquo;</span></a>',
+                   link_tag=paginate_link_tag,
+                   url=page_url|safe) | safe }}
+            </ul>
+          </nav>
+        </div>
+        <div class="col-4">
+          <form action="{{ url_for('ca_list') }}" method="get">
+            <input type="hidden" name="page" value="{{ page }}">
+            <div class="input-group">
+              <div class="input-group-preped">
+                <select class="form-control" name="search_option">
+                  <option value="title">제목</option>
+                  <option value="content">내용</option>
+                </select>
+              </div>
+              <input type="text" class="form-control" placeholder="검색어를 입력하세요" name="search_word">
+              <div class="input-group-append">
+                <button class="btn btn-success" type="submit">검색하기</button>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="col-2 text-right">
+          <a href="{{ url_for('ca_add') }}" class="btn btn-primary">CA 추가</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

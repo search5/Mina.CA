@@ -124,8 +124,12 @@
       methods: {
         submit: function () {
           axios.post("{{ url_for('ca_add_post') }}", this.ca_info).then(function (res) {
-            alert('정상적으로 생성되었습니다')
-            //location.href = '{{ url_for('ca_list') }}'
+            if (res.data.success) {
+                alert('정상적으로 생성되었습니다')
+                location.href = '{{ url_for('ca_list') }}'
+            } else {
+                alert(res.data.message)
+            }
           })
         }
       }

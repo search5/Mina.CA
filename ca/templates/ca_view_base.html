@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block main %}
+  <div class="starter-template">
+    <div class="row">
+      <div class="col-1">
+        <img src="{{ url_for('static', filename='img/mina_ca.png') }}" width="144">
+      </div>
+      <div class="col-6">
+        <h4>인증기관 정보</h4>
+        <span>{{ ca_record.catitle }} / {{ ca_record.catype }} / {{ ca_record.common_name }}</span>
+        <a href="#" data-toggle="modal" data-target="#exampleModal"><span>더보기</span></a>
+      </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">인증기관 정보 더보기</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-2 p-2"><span class="font-weight-bold">기관명</span></div>
+              <div class="col-4 p-2">{{ ca_record.catitle }}</div>
+              <div class="col-2 p-2"><span class="font-weight-bold">CA Dir</span></div>
+              <div class="col-4 p-2">{{ ca_record.catop }}</div>
+            </div>
+            <div class="row">
+              <div class="col-2 p-2"><span class="font-weight-bold">CA 타입</span></div>
+              <div class="col-4 p-2">{{ ca_record.catype }}</div>
+              <div class="col-2 p-2"><span class="font-weight-bold">국가코드</span></div>
+              <div class="col-4 p-2">{{ ca_record.country_name }}</div>
+            </div>
+            <div class="row">
+              <div class="col-2 p-2"><span class="font-weight-bold">시/도</span></div>
+              <div class="col-4 p-2">{{ ca_record.province_name }}</div>
+              <div class="col-2 p-2"><span class="font-weight-bold">시/군/구</span></div>
+              <div class="col-4 p-2">{{ ca_record.locality_name }}</div>
+            </div>
+            <div class="row">
+              <div class="col-2 p-2"><span class="font-weight-bold">기관명</span></div>
+              <div class="col-4 p-2">{{ ca_record.organization_name }}</div>
+              <div class="col-2 p-2"><span class="font-weight-bold">부서</span></div>
+              <div class="col-4 p-2">{{ ca_record.organizational_unit_name }}</div>
+            </div>
+            <div class="row">
+              <div class="col-3 p-2"><span class="font-weight-bold">담당자 이메일</span></div>
+              <div class="col-6 p-2">{{ ca_record.email_address }}</div>
+            </div>
+            <div class="row">
+              <div class="col-3 p-2"><span class="font-weight-bold">CA 도메인</span></div>
+              <div class="col-6 p-2">{{ ca_record.common_name }}</div>
+            </div>
+            <div class="row">
+              <div class="col-3 p-2"><span class="font-weight-bold">유효기간(일단위)</span></div>
+              <div class="col-6 p-2">{{ ca_record.cadays }}</div>
+            </div>
+            <div class="row">
+              <div class="col-3 p-2"><span class="font-weight-bold">생성일자</span></div>
+              <div class="col-6 p-2">{{ ca_record.created_date }}</div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-1" style="background-color: mediumpurple;">
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item text-white" style="background-color: mediumpurple;">인증서</li>
+          <li class="list-group-item text-white" style="background-color: mediumpurple;">인증요청서</li>
+          <li class="list-group-item text-white" style="background-color: mediumpurple;">폐기됨</li>
+        </ul>
+      </div>
+      <div class="col-11">
+        <div class="alert alert-info" role="alert">
+          이 인증서는 만료까지 {{ left_ca_days }}일 남았습니다
+        </div>
+        {% block ca_view %}
+        {% endblock %}
+      </div>
+    </div>
+
+    {#<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.10/vue.min.js" integrity="sha256-chlNFSVx3TdcQ2Xlw7SvnbLAavAQLO0Y/LBiWX04viY=" crossorigin="anonymous"></script>#}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.10/vue.js" integrity="sha256-ufGElb3TnOtzl5E4c/qQnZFGP+FYEZj5kbSEdJNrw0A=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js" integrity="sha256-S1J4GVHHDMiirir9qsXWc8ZWw74PHHafpsHp5PXtjTs=" crossorigin="anonymous"></script>
+    {% block footer_js %}
+    {% endblock %}
+  </div>
+{% endblock %}
