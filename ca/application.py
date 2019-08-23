@@ -42,7 +42,7 @@ def ca_list():
     records = db_session.query(CA)
     if search_word:
         records = records.filter(search_column.ilike('%{}%'.format(search_word)))
-    records = records.order_by(desc(CA.idx))
+    records = records.order_by(desc(CA.id))
     total_cnt = records.count()
 
     paginator = paginate.Page(records, current_page, page_url=page_url,
@@ -59,6 +59,14 @@ def ca_list():
 def ca_add():
     form = CAForm()
 
+    # Country Name: 2자리 국가코드를 입력한다.
+    # State or Province Name: 인증기관이 위치한 주 또는 지역 이름을 입력한다.
+    # Locality Name: 인증기관이 위치한 도시 이름을 입력한다.
+    # Organization Name: 인증기관의 이름을 입력한다.
+    # Organizational Unit Name: 인증서를 발급하는 인증기관의 부서명을 입력한다.
+    # Common Name: 인증기관의 도메인 이름을 입력한다. 실제 존재하지 않아도 된다.
+    # Email Address: 입력하지 않는다.
+
     return render_template("ca_add.html", form=form)
 
 
@@ -72,9 +80,9 @@ def ca_add_post():
     req_json = request.get_json()
 
     # 기본값 세팅
-    if not req_json['cakey']: req_json['cakey'] = 'cakey.pem'
-    if req_json['careq']: req_json['careq'] = 'careq.pem'
-    if req_json['cacert']: req_json['cacert'] = 'cacert.pem'
+    # if not req_json['cakey']: req_json['cakey'] = 'cakey.pem'
+    # if req_json['careq']: req_json['careq'] = 'careq.pem'
+    # if req_json['cacert']: req_json['cacert'] = 'cacert.pem'
 
     form = CAForm(MultiDict(req_json))
 
@@ -93,6 +101,22 @@ def ca_add_post():
                 caconfig = p.read_text()
                 caconfig = caconfig.replace("./demoCA", str(new_ca_root.resolve()))
                 ca_record.caconfig = caconfig
+
+                # Enter PEM pass phrase: <password>⏎
+                # Verifying - Enter PEM pass phrase: <password>
+
+                # Country Name (2 letter code) [AU]:KR⏎
+                # State or Province Name (full name) [Some-State]:⏎
+                # Locality Name (eg, city) []:Seoul⏎
+                # Organization Name (eg, company) [Internet Widgits Pty Ltd]:⏎
+                # Organizational Unit Name (eg, section) []:⏎
+                # Common Name (e.g. server FQDN or YOUR name) []:ca.insignal.co.kr⏎
+                # Email Address []: ⏎
+                #
+                # Please enter the following 'extra' attributes
+                # to be sent with your certificate request
+                # A challenge password []:⏎
+                # An optional company name []:⏎
 
         db_session.add(ca_record)
         db_session.commit()

@@ -11,7 +11,10 @@
                 <tr>
                   <th scope="col">#</th>
                   <th scope="col">인증기관명</th>
-                  <th scope="col">생성일</th>
+                  <th scope="col">인증기관 타입</th>
+                  <th scope="col">회사명</th>
+                  <th scope="col">도메인</th>
+                  <th scope="col">생성시간</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -20,6 +23,9 @@
                   <tr>
                     <th>{{ (total_cnt - (items_per_page * (page - 1))) - loop.index0 }}</th>
                     <td><a href="{{ '' }}">{{ row.catitle }}</a></td>
+                    <td>{{ row.catype }}</td>
+                    <td>{{ row.organization_name }}</td>
+                    <td>{{ row.common_name }}</td>
                     <td>{{ row.created_date }}</td>
                   </tr>
                 {% endfor %}

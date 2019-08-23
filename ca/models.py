@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, String, DateTime, Sequence, func, Text
+from sqlalchemy import Column, Integer, String, DateTime, Sequence, func, Text, \
+    ForeignKey
+from sqlalchemy.orm import relationship, backref
 
 from ca.database import Base
 
@@ -51,12 +53,21 @@ class User(Base):
 class CA(Base):
     __tablename__ = 'ca'
 
-    idx = Column(Integer, Sequence('ca_seq'), primary_key=True)
-    catitle = Column(String(255), comment='인증기관명')
+    id = Column(Integer, Sequence('ca_seq'), primary_key=True)
+    parent_id = Column(Integer, ForeignKey('ca.id'))
+    children = relationship("CA", backref=backref('parent', remote_side=[id]))
+    catitle = Column(String(255), comment='인증기관명(한글)')
+    capass = Column(String(255), comment='인증키 비밀번호')
     catop = Column(String(255), comment='CA 디렉터리')
-    cakey = Column(String(255), comment='CA 비밀키 파일명')
-    careq = Column(String(255), comment='CA 인증 요청서 파일명')
-    cacert = Column(String(255), comment='CA 인증기관의 인증서')
+    catype = Column(String(100), comment='CA 타입(Root, Intermediate)')
+    cakey = Column(String(255), comment='ROOT CA 파일')
+    country_name = Column(String(2), comment='국가코드')
+    province_name = Column(String(255), comment='시/도')
+    locality_name = Column(String(255), comment='시/군/구')
+    organization_name = Column(String(255), comment='인증기관명')
+    organizational_unit_name = Column(String(255), comment='인증기관 부서')
+    common_name = Column(String(255), comment='CA 도메인')
+    email_address = Column(String(255), comment='인증기관 담당자 이메일')
     cadays = Column(String(255), comment='인증기관 유효기간(일단위)')
     caconfig = Column(Text, comment='CA 설정 파일 내용(인증기관별로 존재)')
     created_date = Column(DateTime, default=func.now(), comment='생성일자')
