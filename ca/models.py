@@ -1,5 +1,7 @@
+from slugify import slugify
 from sqlalchemy import Column, Integer, String, DateTime, Sequence, func, Text, \
     ForeignKey, JSON
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, backref
 
 from ca.database import Base
@@ -60,3 +62,7 @@ class Certficate(Base):
     cert_status = Column(String(100), comment='CSR, CERTIFICATED, REVOKE')
     history = Column(JSON, default=[], comment='인증서 이력')
     created_date = Column(DateTime, default=func.now(), comment='생성일자')
+
+    @hybrid_property
+    def cert_link(self):
+        return slugify(self.cert_title)

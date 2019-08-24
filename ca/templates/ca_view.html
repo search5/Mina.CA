@@ -15,7 +15,7 @@
       {% for row in paginator %}
         <tr>
           <th>{{ (total_cnt - (items_per_page * (page - 1))) - loop.index0 }}</th>
-          <td><a href="{{ url_for('ca_view', catop=row.cert_title) }}">{{ row.cert_title }}</a></td>
+          <td><a href="{{ url_for('certificate_view', catop=ca_record.catop, cert_id=row.id) }}">{{ row.cert_title }}</a></td>
           <td>{{ row.common_name }}</td>
           <td>{{ row.cert_status }}</td>
           <td>{{ row.created_date }}</td>

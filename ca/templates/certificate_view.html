@@ -1,0 +1,71 @@
+{% extends "ca_view_base.html" %}
+
+{% block ca_view %}
+  <div class="row ml-1 mr-1 mb-2">
+    <div class="col-2 p-2 text-white" style="background-color: cornflowerblue;"><span class="font-weight-bold">서비스명</span></div>
+    <div class="col-6 p-2 border">{{ cert_record.cert_title }}</div>
+    <div class="col-1 p-2 text-white" style="background-color: cornflowerblue;"><span class="font-weight-bold">국가코드</span></div>
+    <div class="col-1 p-2 border">{{ cert_record.country_name }}</div>
+    <div class="col-1 p-2 text-white" style="background-color: cornflowerblue;"><span class="font-weight-bold">시/도</span></div>
+    <div class="col-1 p-2 border">{{ cert_record.province_name }}</div>
+  </div>
+  <div class="row ml-1 mr-1 mb-2">
+    <div class="col-2 p-2 text-white" style="background-color: cornflowerblue;"><span class="font-weight-bold">기관명</span></div>
+    <div class="col-5 p-2 border">{{ cert_record.organization_name }}</div>
+    <div class="col-1 p-2 text-white" style="background-color: cornflowerblue;"><span class="font-weight-bold">시/군/구</span></div>
+    <div class="col-1 p-2 border">{{ cert_record.locality_name }}</div>
+    <div class="col-1 p-2 text-white" style="background-color: cornflowerblue;"><span class="font-weight-bold">부서</span></div>
+    <div class="col-2 p-2 border">{{ cert_record.organizational_unit_name }}</div>
+  </div>
+  <div class="row ml-1 mr-1 mb-2">
+    <div class="col-2 p-2 text-white" style="background-color: cornflowerblue;"><span class="font-weight-bold">담당자 이메일</span></div>
+    <div class="col-2 p-2 border">{{ cert_record.email_address }}</div>
+    <div class="col-2 p-2 text-white" style="background-color: cornflowerblue;"><span class="font-weight-bold">인증서 도메인</span></div>
+    <div class="col-3 p-2 border">{{ cert_record.common_name }}</div>
+    <div class="col-2 p-2 text-white" style="background-color: cornflowerblue;"><span class="font-weight-bold">유효기간(일단위)</span></div>
+    <div class="col-1 p-2 border">{{ cert_record.cert_days }}</div>
+  </div>
+  <div class="row ml-1 mr-1 mb-2">
+    <div class="col-2 p-2 text-white" style="background-color: cornflowerblue;"><span class="font-weight-bold">생성일자</span></div>
+    <div class="col-10 p-2 border">{{ cert_record.created_date }}</div>
+  </div>
+  <div class="row ml-1 mr-1 mb-2">
+    <div class="col-2 p-2 text-white" style="background-color: cornflowerblue;"><span class="font-weight-bold">유효기간</span></div>
+    <div class="col-10 p-2 border">여기에 인증서 유효기간 표시. 물론 인증됐을 때만...</div>
+  </div>
+  <div class="row">
+    <div class="col-12 text-right">
+      <div class="btn-group">
+        <button class="btn btn-primary">승인</button>
+        <button class="btn btn-danger" onclick="certificate_delete('{{ cert_record.id }}')">삭제</button>
+      </div>
+    </div>
+  </div>
+  <div class="row mt-5">
+    <div class="col-12">
+      <h4>인증서 이력</h4>
+      <table class="table">
+        <tr>
+          <th style="width: 14%;">날짜</th>
+          <th>이력</th>
+        </tr>
+        {% for row in cert_record.history %}
+        <tr>
+          <td>{{ row['DATE'] }}</td>
+          <td>{{ row['NOTE'] }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+{% endblock %}
+
+{% block footer_js %}
+  <script>
+  function certificate_delete(cert_id) {
+      if (confirm('이 인증서를 삭제하시겠습니까?')) {
+          alert(cert_id)
+      }
+  }
+  </script>
+{% endblock %}

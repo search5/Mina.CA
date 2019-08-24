@@ -82,34 +82,34 @@
 
 {% block footer_js %}
   <script>
-      new Vue({
-          el: "form",
-          data: {
-              cert_info: {
-                  cert_title: "",
-                  cert_pass: "",
-                  country_name: "",
-                  province_name: "",
-                  locality_name: "",
-                  organization_name: "",
-                  organizational_unit_name: "",
-                  common_name: "",
-                  email_address: "",
-                  cert_days: ""
-              }
-          },
-          methods: {
-              submit: function () {
-                  axios.post("{{ url_for('cert_csr_new_post', catop=ca_record.catop) }}", this.cert_info).then(function (res) {
-                      if (res.data.success) {
-                          alert('정상적으로 생성되었습니다')
-                          location.href = '{{ url_for('ca_view', catop=ca_record.catop) }}'
-                      } else {
-                          alert(res.data.message)
-                      }
-                  })
-              }
-          }
-      })
+    new Vue({
+      el: "form",
+      data: {
+        cert_info: {
+          cert_title: "",
+          cert_pass: "",
+          country_name: "",
+          province_name: "",
+          locality_name: "",
+          organization_name: "",
+          organizational_unit_name: "",
+          common_name: "",
+          email_address: "",
+          cert_days: ""
+        }
+      },
+      methods: {
+        submit: function () {
+          axios.post("{{ url_for('cert_csr_new_post', catop=ca_record.catop) }}", this.cert_info).then(function (res) {
+            if (res.data.success) {
+              alert('정상적으로 생성되었습니다')
+              location.href = '{{ url_for('ca_view', catop=ca_record.catop) }}'
+            } else {
+              alert(res.data.message)
+            }
+          })
+        }
+      }
+    })
   </script>
 {% endblock %}

@@ -1,4 +1,5 @@
 import os
+import time
 from datetime import timedelta, datetime
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -192,6 +193,8 @@ def ca_view(catop):
         flash('이러기야? 잘못된 CA를 조회하셨습니다')
 
     left_ca_days = (ca_record.created_date + timedelta(days=int(ca_record.cadays))) - datetime.now()
+    left_ca_days = "{days} 일 {times}".format(days=left_ca_days.days,
+                                             times=time.strftime("%H시 %M분 %S초", time.gmtime(left_ca_days.seconds)))
 
     current_page = request.args.get("page", 1, type=int)
     search_option = request.args.get("search_option", '')
@@ -224,7 +227,7 @@ def ca_view(catop):
                            paginate_link_tag=paginate_link_tag,
                            page_url=page_url, items_per_page=items_per_page,
                            total_cnt=total_cnt, page=current_page,
-                           ca_record=ca_record, left_ca_days=left_ca_days.days)
+                           ca_record=ca_record, left_ca_days=left_ca_days)
 
 
 @app.route("/ca/<catop>/csr/new")
@@ -235,10 +238,12 @@ def ca_csr_new(catop):
         flash('이러기야? 잘못된 CA를 조회하셨습니다')
 
     left_ca_days = (ca_record.created_date + timedelta(days=int(ca_record.cadays))) - datetime.now()
+    left_ca_days = "{days} 일 {times}".format(days=left_ca_days.days,
+                                             times=time.strftime("%H시 %M분 %S초", time.gmtime(left_ca_days.seconds)))
 
     form = CertificateForm()
 
-    return render_template('ca_csr_new.html', ca_record=ca_record, left_ca_days=left_ca_days.days, form=form)
+    return render_template('ca_csr_new.html', ca_record=ca_record, left_ca_days=left_ca_days, form=form)
 
 
 @app.route("/ca/<catop>/csr/new", methods=["POST"])
@@ -284,24 +289,24 @@ def cert_csr_new_post(catop):
 
         ssl_req = pexpect.spawn(RET, encoding='utf-8')
         ssl_req.expect('Enter PEM pass phrase:')
-        ssl_req.sendline(ca_record.capass)
+        ssl_req.sendline(cert_record.cert_pass)
         ssl_req.expect('Verifying - Enter PEM pass phrase:')
-        ssl_req.sendline(ca_record.capass)
+        ssl_req.sendline(cert_record.cert_pass)
 
         ssl_req.expect('Country Name.*:')
-        ssl_req.sendline(ca_record.country_name)
+        ssl_req.sendline(cert_record.country_name)
         ssl_req.expect('State or Province Name.*:')
-        ssl_req.sendline(ca_record.province_name)
+        ssl_req.sendline(cert_record.province_name)
         ssl_req.expect('Locality Name.*:')
-        ssl_req.sendline(ca_record.locality_name)
+        ssl_req.sendline(cert_record.locality_name)
         ssl_req.expect('Organization Name.*:')
-        ssl_req.sendline(ca_record.organization_name)
+        ssl_req.sendline(cert_record.organization_name)
         ssl_req.expect('Organizational Unit Name.*:')
-        ssl_req.sendline(ca_record.organizational_unit_name)
+        ssl_req.sendline(cert_record.organizational_unit_name)
         ssl_req.expect('Common Name.*:')
-        ssl_req.sendline(ca_record.common_name)
+        ssl_req.sendline(cert_record.common_name)
         ssl_req.expect('Email Address.*:')
-        ssl_req.sendline(ca_record.email_address)
+        ssl_req.sendline(cert_record.email_address)
         ssl_req.expect('A challenge password.*:')
         ssl_req.sendline(".")
         ssl_req.expect('An optional company name.*:')
@@ -323,6 +328,23 @@ def cert_csr_new_post(catop):
         ret["success"] = False
 
     return jsonify(ret)
+
+
+@app.route("/ca/<catop>/certificate/<cert_id>")
+def certificate_view(catop, cert_id):
+    ca_record = CA.query.filter(CA.catop == catop).first()
+
+    if not ca_record:
+        flash('이러기야? 잘못된 CA를 조회하셨습니다')
+
+    left_ca_days = (ca_record.created_date + timedelta(days=int(ca_record.cadays))) - datetime.now()
+
+    left_ca_days = "{days} 일 {times}".format(days=left_ca_days.days,
+                                             times=time.strftime("%H시 %M분 %S초", time.gmtime(left_ca_days.seconds)))
+
+    cert_record = Certficate.query.filter(Certficate.id == cert_id).first()
+
+    return render_template("certificate_view.html", ca_record=ca_record, left_ca_days=left_ca_days, cert_record=cert_record)
 
 
 @app.teardown_appcontext
