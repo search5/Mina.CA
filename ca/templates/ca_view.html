@@ -19,7 +19,7 @@
           <td>{{ row.common_name }}</td>
           <td>{{ row.cert_status }}</td>
           <td>{{ row.created_date }}</td>
-          <td>{{ row.certificate_date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+          <td>{{ row.certificate_date and row.certificate_date.strftime('%Y-%m-%d %H:%M:%S') or '' }}</td>
         </tr>
       {% endfor %}
     </table>

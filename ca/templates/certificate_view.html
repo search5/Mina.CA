@@ -42,7 +42,9 @@
           <button class="btn btn-primary" onclick="certificate_sign('{{ cert_record.id }}')">승인</button>
           <button class="btn btn-danger" onclick="certificate_delete('{{ cert_record.id }}')">삭제</button>
         {% elif cert_record.cert_status == "CERTIFICATED" %}
-          <button class="btn btn-primary" data-toggle="modal" data-target="#certificate_revoke">박탈</button>
+          <button class="btn btn-danger" data-toggle="modal" data-target="#certificate_revoke">박탈</button>
+          <a href="{{ url_for('certificate_download', catop=ca_record.catop, cert_id=cert_record.id, ca_include="true") }}" class="btn btn-success">인증서 다운로드(CA 포함)</a>
+          <a href="{{ url_for('certificate_download', catop=ca_record.catop, cert_id=cert_record.id, ca_include="false") }}" class="btn btn-success">인증서 다운로드(CA 제외)</a>
         {% endif %}
       </div>
     </div>

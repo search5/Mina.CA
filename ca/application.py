@@ -3,12 +3,14 @@ import shutil
 import sys
 import time
 from datetime import timedelta, datetime
+from io import BytesIO, StringIO
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+from zipfile import ZipFile, ZIP_DEFLATED
 
 import paginate as paginate
 import pexpect
-from flask import Flask, render_template, request, jsonify, url_for, redirect, flash
+from flask import Flask, render_template, request, jsonify, url_for, redirect, flash, send_file
 from paginate_sqlalchemy import SqlalchemyOrmWrapper
 from slugify import slugify
 from sqlalchemy import desc, Column
@@ -480,6 +482,59 @@ def certificate_revoke(catop, cert_id):
         ret['message'] = '인증서는 CERTIFICATED 단계에서만 취소할 수 있습니다'
 
     return jsonify(ret)
+
+
+@app.route("/ca/<catop>/certificate/<cert_id>/download")
+def certificate_download(catop, cert_id):
+    ca_record = CA.query.filter(CA.catop == catop).first()
+
+    if not ca_record:
+        flash('이러기야? 잘못된 CA를 조회하셨습니다')
+
+    cert_record = Certficate.query.filter(Certficate.id == cert_id).first()
+    if cert_record and cert_record.cert_status == "CERTIFICATED":
+        new_ca_root = Path(os.environ["CA_ROOTS"]) / ca_record.catop
+
+        CACERT = new_ca_root / "cacert.pem"
+
+        certs_dir = new_ca_root / "certs" / cert_record.cert_link
+
+        NEWCERT = certs_dir / "cert.pem"
+        NEWKEY = certs_dir / "key.pem"
+
+        # cert 파일은 -----BEGIN CERTIFICATE----- 부터 마지막줄까지만 찾아서 보내줘야 함
+        # 왜냐하면 시스템마다 구분자 이전은 인식하지 않을 수 있기 때문
+
+        certificate_identifier = "-----BEGIN CERTIFICATE-----"
+
+        ca_cert_io = NamedTemporaryFile('w+')
+        certificate_content = CACERT.open('r').read()
+        certificate_ident_start = certificate_content.find(certificate_identifier)
+        ca_cert_io.write(certificate_content[certificate_ident_start:])
+        ca_cert_io.seek(0)
+
+        cert_io = NamedTemporaryFile('w+')
+        certificate_content = NEWCERT.open('r').read()
+        certificate_ident_start = certificate_content.find(certificate_identifier)
+        cert_io.write(certificate_content[certificate_ident_start:])
+        cert_io.seek(0)
+
+        # temporary zip file create
+        zip_file = BytesIO()
+        cert_zip = ZipFile(zip_file, 'w', ZIP_DEFLATED, True)
+        cert_zip.write(cert_io.name, "{}_cert.pem".format(cert_record.cert_link))
+        cert_zip.write(str(NEWKEY.resolve()), "{}_key.pem".format(cert_record.cert_link))
+
+        if request.args.get('ca_include') == 'true':
+            cert_zip.write(ca_cert_io.name, "{}_cacert.pem".format(ca_record.catop))
+
+        cert_zip.close()
+
+        zip_file.seek(0)
+
+        return send_file(zip_file, mimetype="application/zip", as_attachment=True, attachment_filename='{}_cert.zip'.format(cert_record.cert_link))
+
+    return '잘못된 요청입니다'
 
 
 @app.teardown_appcontext
