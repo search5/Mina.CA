@@ -1,5 +1,6 @@
 import os
 import shutil
+import sys
 import time
 from datetime import timedelta, datetime
 from pathlib import Path
@@ -11,6 +12,7 @@ from flask import Flask, render_template, request, jsonify, url_for, redirect, f
 from paginate_sqlalchemy import SqlalchemyOrmWrapper
 from slugify import slugify
 from sqlalchemy import desc, Column
+from sqlalchemy.orm.attributes import flag_modified
 from werkzeug.datastructures import MultiDict
 
 from ca.database import db_session
@@ -366,6 +368,63 @@ def certificate_delete(catop, cert_id):
         ret['message'] = '삭제되었습니다'
     else:
         ret['message'] = '인증서는 CSR 단계에서만 삭제할 수 있습니다'
+
+    return jsonify(ret)
+
+
+@app.route("/ca/<catop>/certificate/<cert_id>", methods=["POST"])
+def certificate_sign(catop, cert_id):
+    ca_record = CA.query.filter(CA.catop == catop).first()
+
+    if not ca_record:
+        flash('이러기야? 잘못된 CA를 조회하셨습니다')
+
+    ret = {"success": True, 'message': ''}
+
+    cert_record = Certficate.query.filter(Certficate.id == cert_id).first()
+    if cert_record and cert_record.cert_status == "CSR":
+
+        # SSL Config 동적 생성하기
+        ssl_cnf = NamedTemporaryFile("w+")
+        ssl_cnf.write(ca_record.caconfig)
+        ssl_cnf.seek(0)
+
+        CA_CMD = "openssl ca -config {ssl_cnf}".format(ssl_cnf=ssl_cnf.name)
+
+        new_ca_root = Path(os.environ["CA_ROOTS"]) / ca_record.catop
+        certs_dir = new_ca_root / "certs" / cert_record.cert_link
+
+        NEWREQ = (certs_dir / "csr.pem").resolve()
+        NEWCERT = (certs_dir / "cert.pem").resolve()
+
+        # TODO: extra options... (1 args)
+        RET = "{CA_CMD} -policy policy_anything -out {NEWCERT} -infiles {NEWREQ}".format(
+            CA_CMD=CA_CMD, NEWCERT=str(NEWCERT), NEWREQ=str(NEWREQ))
+
+        ssl_sign = pexpect.spawn(RET, encoding='utf-8')
+        ssl_sign.logfile=sys.stdout
+        ssl_sign.expect('Enter pass phrase for.*:')
+        ssl_sign.sendline(ca_record.capass)
+        ssl_sign.expect('Sign the certificate.*')
+        ssl_sign.sendline('Y')
+        ssl_sign.expect('[0-9]+ out of [0-9]+ certificate requests certified, commit.*')
+        ssl_sign.sendline('Y')
+        ssl_sign.expect(pexpect.EOF)
+        ssl_sign.wait()
+
+        certificate_date = datetime.now()
+        cert_record.cert_status = 'CERTIFICATED'
+        cert_record.certificate_date = certificate_date
+        cert_record.history.append({
+            "DATE": certificate_date.strftime("%Y-%m-%d %H:%M:%S"), "NOTE": "인증기관 \"{CATITLE} \"이 인증서 사인함".format(CATITLE=ca_record.catitle)
+        })
+        flag_modified(cert_record, "history")
+
+        print("Signed certificate is in {NEWCERT}".format(NEWCERT=str(NEWCERT)))
+
+        ret['message'] = '이 인증서를 사인했습니다'
+    else:
+        ret['message'] = '인증서는 CSR 단계에서만 사인할 수 있습니다'
 
     return jsonify(ret)
 

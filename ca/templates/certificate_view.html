@@ -39,7 +39,7 @@
     <div class="col-12 text-right">
       <div class="btn-group">
         {% if cert_record.cert_status == 'CSR' %}
-          <button class="btn btn-primary">승인</button>
+          <button class="btn btn-primary" onclick="certificate_sign('{{ cert_record.id }}')">승인</button>
           <button class="btn btn-danger" onclick="certificate_delete('{{ cert_record.id }}')">삭제</button>
         {% elif cert_record.cert_status == "CERTIFICATED" %}
           <button class="btn btn-primary">박탈</button>
@@ -69,7 +69,7 @@
 {% block footer_js %}
   <script>
   function certificate_delete(cert_id) {
-      if (confirm('이 인증서를 삭제하시겠습니까?')) {
+      if (confirm('이 인증 요청서를 삭제하시겠습니까?')) {
           axios.delete("{{ url_for('certificate_delete', catop=ca_record.catop, cert_id=cert_record.id ) }}").then(function (resp) {
               if (resp.data.success) {
                   alert(resp.data.message)
@@ -82,7 +82,16 @@
   }
 
   function certificate_sign(cert_id) {
-      // TODO 서버에 인증 요청서 사인 요청
+      if (confirm('인증 요청서를 승인하시겠습니까?')) {
+          axios.post('{{ url_for('certificate_sign', catop=ca_record.catop, cert_id=cert_record.id ) }}').then(function (resp) {
+              if (resp.data.success) {
+                  alert(resp.data.message)
+                  location.reload()
+              } else {
+                  alert(resp.data.message)
+              }
+          })
+      }
   }
   </script>
 {% endblock %}
