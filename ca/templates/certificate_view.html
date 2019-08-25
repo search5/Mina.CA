@@ -29,15 +29,21 @@
     <div class="col-2 p-2 text-white" style="background-color: cornflowerblue;"><span class="font-weight-bold">생성일자</span></div>
     <div class="col-10 p-2 border">{{ cert_record.created_date }}</div>
   </div>
+  {% if cert_record.cert_status == 'CERTIFICATED' %}
   <div class="row ml-1 mr-1 mb-2">
     <div class="col-2 p-2 text-white" style="background-color: cornflowerblue;"><span class="font-weight-bold">유효기간</span></div>
-    <div class="col-10 p-2 border">여기에 인증서 유효기간 표시. 물론 인증됐을 때만...</div>
+    <div class="col-10 p-2 border">{{ cert_record.certificate_date }}</div>
   </div>
+  {% endif %}
   <div class="row">
     <div class="col-12 text-right">
       <div class="btn-group">
-        <button class="btn btn-primary">승인</button>
-        <button class="btn btn-danger" onclick="certificate_delete('{{ cert_record.id }}')">삭제</button>
+        {% if cert_record.cert_status == 'CSR' %}
+          <button class="btn btn-primary">승인</button>
+          <button class="btn btn-danger" onclick="certificate_delete('{{ cert_record.id }}')">삭제</button>
+        {% elif cert_record.cert_status == "CERTIFICATED" %}
+          <button class="btn btn-primary">박탈</button>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -64,8 +70,19 @@
   <script>
   function certificate_delete(cert_id) {
       if (confirm('이 인증서를 삭제하시겠습니까?')) {
-          alert(cert_id)
+          axios.delete("{{ url_for('certificate_delete', catop=ca_record.catop, cert_id=cert_record.id ) }}").then(function (resp) {
+              if (resp.data.success) {
+                  alert(resp.data.message)
+                  location.href = "{{ url_for('ca_view', catop=ca_record.catop) }}"
+              } else {
+                  alert(resp.data.message)
+              }
+          })
       }
+  }
+
+  function certificate_sign(cert_id) {
+      // TODO 서버에 인증 요청서 사인 요청
   }
   </script>
 {% endblock %}

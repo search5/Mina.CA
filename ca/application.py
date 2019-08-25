@@ -1,4 +1,5 @@
 import os
+import shutil
 import time
 from datetime import timedelta, datetime
 from pathlib import Path
@@ -178,7 +179,6 @@ def ca_add_post():
                 print("CA certificate is in {CACERT}".format(CACERT=str(CACERT)))
 
         db_session.add(ca_record)
-        db_session.commit()
     else:
         ret["success"] = False
 
@@ -275,9 +275,7 @@ def cert_csr_new_post(catop):
 
         new_ca_root = Path(os.environ["CA_ROOTS"]) / ca_record.catop
 
-        certificate_name = slugify(cert_record.cert_title)
-
-        certs_dir = new_ca_root / "certs" / certificate_name
+        certs_dir = new_ca_root / "certs" / cert_record.cert_link
         certs_dir.mkdir(parents=True, exist_ok=True)
 
         NEWKEY = (certs_dir / "key.pem").resolve()
@@ -323,7 +321,6 @@ def cert_csr_new_post(catop):
         }]
 
         db_session.add(cert_record)
-        db_session.commit()
     else:
         ret["success"] = False
 
@@ -347,6 +344,37 @@ def certificate_view(catop, cert_id):
     return render_template("certificate_view.html", ca_record=ca_record, left_ca_days=left_ca_days, cert_record=cert_record)
 
 
+@app.route("/ca/<catop>/certificate/<cert_id>", methods=["DELETE"])
+def certificate_delete(catop, cert_id):
+    ca_record = CA.query.filter(CA.catop == catop).first()
+
+    if not ca_record:
+        flash('이러기야? 잘못된 CA를 조회하셨습니다')
+
+    ret = {"success": True, 'message': ''}
+
+    cert_record = Certficate.query.filter(Certficate.id == cert_id).first()
+    if cert_record and cert_record.cert_status == "CSR":
+        db_session.delete(cert_record)
+
+        # 인증서 디렉터리 삭제
+        new_ca_root = Path(os.environ["CA_ROOTS"]) / ca_record.catop
+
+        certs_dir = new_ca_root / "certs" / cert_record.cert_link
+        shutil.rmtree(certs_dir)
+
+        ret['message'] = '삭제되었습니다'
+    else:
+        ret['message'] = '인증서는 CSR 단계에서만 삭제할 수 있습니다'
+
+    return jsonify(ret)
+
+
 @app.teardown_appcontext
 def shutdown_session(exception=None):
+    if exception:
+        db_session.rollback()
+    else:
+        db_session.commit()
+
     db_session.remove()

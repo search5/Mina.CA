@@ -62,6 +62,7 @@ class Certficate(Base):
     cert_status = Column(String(100), comment='CSR, CERTIFICATED, REVOKE')
     history = Column(JSON, default=[], comment='인증서 이력')
     created_date = Column(DateTime, default=func.now(), comment='생성일자')
+    certificate_date = Column(DateTime, comment='인증일자')
 
     @hybrid_property
     def cert_link(self):
