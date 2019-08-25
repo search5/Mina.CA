@@ -402,7 +402,6 @@ def certificate_sign(catop, cert_id):
             CA_CMD=CA_CMD, NEWCERT=str(NEWCERT), NEWREQ=str(NEWREQ))
 
         ssl_sign = pexpect.spawn(RET, encoding='utf-8')
-        ssl_sign.logfile=sys.stdout
         ssl_sign.expect('Enter pass phrase for.*:')
         ssl_sign.sendline(ca_record.capass)
         ssl_sign.expect('Sign the certificate.*')
@@ -425,6 +424,60 @@ def certificate_sign(catop, cert_id):
         ret['message'] = '이 인증서를 사인했습니다'
     else:
         ret['message'] = '인증서는 CSR 단계에서만 사인할 수 있습니다'
+
+    return jsonify(ret)
+
+
+@app.route("/ca/<catop>/certificate/<cert_id>/revoke", methods=["POST"])
+def certificate_revoke(catop, cert_id):
+    ca_record = CA.query.filter(CA.catop == catop).first()
+
+    if not ca_record:
+        flash('이러기야? 잘못된 CA를 조회하셨습니다')
+
+    ret = {"success": True, 'message': ''}
+
+    cert_record = Certficate.query.filter(Certficate.id == cert_id).first()
+    if cert_record and cert_record.cert_status == "CERTIFICATED":
+
+        # SSL Config 동적 생성하기
+        ssl_cnf = NamedTemporaryFile("w+")
+        ssl_cnf.write(ca_record.caconfig)
+        ssl_cnf.seek(0)
+
+        CA_CMD = "openssl ca -config {ssl_cnf}".format(ssl_cnf=ssl_cnf.name)
+
+        # 인증서 승인 취소
+        new_ca_root = Path(os.environ["CA_ROOTS"]) / ca_record.catop
+
+        certs_dir = new_ca_root / "certs" / cert_record.cert_link
+
+        NEWCERT = (certs_dir / "cert.pem").resolve()
+
+        # 인증 취소 사유
+        reason = request.get_json().get('reason')
+
+        RET = "{CA_CMD} -revoke {NEWCERT} -crl_reason {REASON}".format(
+            CA_CMD=CA_CMD, NEWCERT=str(NEWCERT), REASON=reason)
+
+        ssl_revoke = pexpect.spawn(RET, encoding='utf-8')
+        ssl_revoke.expect('Enter pass phrase for .*:')
+        ssl_revoke.sendline(ca_record.capass)
+        ssl_revoke.expect(pexpect.EOF)
+        ssl_revoke.wait()
+
+        certificate_date = datetime.now()
+        cert_record.cert_status = 'REVOKE'
+        cert_record.certificate_date = certificate_date
+        cert_record.history.append({
+            "DATE": certificate_date.strftime("%Y-%m-%d %H:%M:%S"),
+            "NOTE": "인증기관 \"{CATITLE} \"에서 인증 취소함".format(CATITLE=ca_record.catitle)
+        })
+        flag_modified(cert_record, "history")
+
+        ret['message'] = '취소되었습니다'
+    else:
+        ret['message'] = '인증서는 CERTIFICATED 단계에서만 취소할 수 있습니다'
 
     return jsonify(ret)
 

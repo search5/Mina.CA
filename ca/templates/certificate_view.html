@@ -32,7 +32,7 @@
   {% if cert_record.cert_status == 'CERTIFICATED' %}
   <div class="row ml-1 mr-1 mb-2">
     <div class="col-2 p-2 text-white" style="background-color: cornflowerblue;"><span class="font-weight-bold">유효기간</span></div>
-    <div class="col-10 p-2 border">{{ cert_record.certificate_date }}</div>
+    <div class="col-10 p-2 border">{{ cert_record.certificate_date.strftime('%Y-%m-%d %H:%M:%S') }}</div>
   </div>
   {% endif %}
   <div class="row">
@@ -42,7 +42,7 @@
           <button class="btn btn-primary" onclick="certificate_sign('{{ cert_record.id }}')">승인</button>
           <button class="btn btn-danger" onclick="certificate_delete('{{ cert_record.id }}')">삭제</button>
         {% elif cert_record.cert_status == "CERTIFICATED" %}
-          <button class="btn btn-primary">박탈</button>
+          <button class="btn btn-primary" data-toggle="modal" data-target="#certificate_revoke">박탈</button>
         {% endif %}
       </div>
     </div>
@@ -62,6 +62,48 @@
         </tr>
         {% endfor %}
       </table>
+    </div>
+  </div>
+
+  <!-- 인증 취소 모달 -->
+  <div class="modal fade" id="certificate_revoke" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="certificateRevokeLabel">인증서 인증 취소</h5>
+          <button type="button" class="close" data-dismiss="modal">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group row">
+            <label for="spanCertTitle" class="col-sm-3 col-form-label">인증서 이름</label>
+            <div class="col-sm-9">
+              <span id="spanCertTitle" class="form-control-static">{{ cert_record.cert_title }}</span>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="crl_reason" class="col-sm-3 col-form-label">인증 취소 사유</label>
+            <div class="col-sm-9">
+              <select id="crl_reason" class="form-control">
+                <option value="">선택하세요</option>
+                <option value="unspecified">불특정</option>
+                <option value="keyCompromise">키 손상</option>
+                <option value="CACompromise">CA 타협</option>
+                <option value="affiliationChanged">소속 변경</option>
+                <option value="superseded">인증서 대체</option>
+                <option value="cessationOfOperation">운영중단</option>
+                <option value="certificateHold">인증보류</option>
+                <option value="removeFromCRL">CRL에서 제거</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" onclick="certificate_revoke('{{ cert_record.id }}')">인증 취소 실행</button>
+        </div>
+      </div>
     </div>
   </div>
 {% endblock %}
@@ -84,6 +126,26 @@
   function certificate_sign(cert_id) {
       if (confirm('인증 요청서를 승인하시겠습니까?')) {
           axios.post('{{ url_for('certificate_sign', catop=ca_record.catop, cert_id=cert_record.id ) }}').then(function (resp) {
+              if (resp.data.success) {
+                  alert(resp.data.message)
+                  location.reload()
+              } else {
+                  alert(resp.data.message)
+              }
+          })
+      }
+  }
+
+  function certificate_revoke(cert_id) {
+      var crl_reason = document.querySelector("#crl_reason")
+
+      if (crl_reason.value === '') {
+          alert('인증 취소 사유를 선택하셔야 합니다')
+          return
+      }
+
+      if (confirm('인증서 승인을 취소하시겠습니까?\n반복할 수 없습니다')) {
+          axios.post('{{ url_for('certificate_revoke', catop=ca_record.catop, cert_id=cert_record.id ) }}', {reason: crl_reason.value}).then(function (resp) {
               if (resp.data.success) {
                   alert(resp.data.message)
                   location.reload()
