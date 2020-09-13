@@ -1,0 +1,27 @@
+version: '2.0'
+services:
+    ca_root:
+        image: debian:buster
+        ports:
+            - "5001:5000"
+        volumes:
+            - .:/opt/ca_server
+            - ca_root_volume:/opt/ca
+        command: bash -c "while true;do echo 1 > /dev/zero; sleep 60; done"
+    ca_intermediate:
+        image: debian:buster
+        ports:
+            - "5002:5000"
+        volumes:
+            - .:/opt/ca_server
+            - ca_intermediate_volume:/opt/ca
+        command: bash -c "while true;do echo 1 > /dev/zero; sleep 60; done"
+    client:
+        image: debian:buster
+        volumes:
+            - ca_client_volume:/opt/client
+        command: bash -c "while true;do echo 1 > /dev/zero; sleep 60; done"
+volumes:
+    ca_root_volume: {}
+    ca_intermediate_volume: {}
+    ca_client_volume: {}

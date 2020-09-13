@@ -24,6 +24,7 @@ from ca.lib import paginate_link_tag
 from ca.models import CA, Certficate
 
 app = Flask(__name__)
+os.environ["CA_ROOTS"] = "/opt/ca"
 
 
 @app.route('/')
