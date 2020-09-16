@@ -122,6 +122,25 @@ class OpenSSLCnf:
     def is_valid(self):
         return True
 
+    @property
+    def req_extension_section(self):
+        return self.req_extension
+
+    @req_extension_section.setter
+    def req_extension_section(self, value):
+        self.req_extension = value
+
+    def load(self, text):
+        self.cnf.read_string(text)
+
+    @property
+    def default_ca(self):
+        return self.default_ca_name
+
+    @default_ca.setter
+    def default_ca(self, value):
+        self.default_ca_name = value
+
 
 if __name__ == '__main__':
     a = OpenSSLCnf('root')

@@ -1,6 +1,9 @@
 import os
+import shlex
 import shutil
+import subprocess
 import sys
+import tempfile
 import time
 from datetime import timedelta, datetime
 from io import BytesIO, StringIO
@@ -17,6 +20,7 @@ from sqlalchemy import desc, Column
 from sqlalchemy.orm.attributes import flag_modified
 from werkzeug.datastructures import MultiDict
 
+from ca.cnf import OpenSSLCnf
 from ca.database import db_session
 from ca.forms.CAForm import CAForm
 from ca.forms.CertificateForm import CertificateForm
@@ -119,67 +123,90 @@ def ca_add_post():
                 Path(new_ca_root / "crlnumber").write_text('01\n')
 
                 ca_root_resolve = str(new_ca_root.resolve())
-                caconfig = p.read_text()
-                caconfig = caconfig.replace("./demoCA", ca_root_resolve)
-                ca_record.caconfig = caconfig
+
+                cnf_editor = OpenSSLCnf(ca_record.catop)
+                cnf_editor.load("[DEFAULT]\n{}".format(p.read_text("utf-8")))
+                cnf_editor.default_ca = 'CA_default'
+                cnf_editor.add_ca_info('dir', ca_root_resolve)
+                ca_record.caconfig = cnf_editor.export()
 
                 print("Making CA certificate ...\n")
 
+                # cakey.pem은 여기서 먼저 생성한다.
+                CAKEY = (new_ca_root / "private" / "cakey.pem").resolve()
+
+                PASSWD_FILE = tempfile.NamedTemporaryFile()
+                PASSWD_FILE.write(ca_record.capass.encode("utf-8"))
+                PASSWD_FILE.seek(0)
+                CAKEY_GEN = f"openssl genrsa -aes256 -passout file:{PASSWD_FILE.name} -out {CAKEY} 4096"
+
+                ret_cakey_gen = subprocess.check_output(shlex.split(CAKEY_GEN))
+
+                # cnf 편집해서 기본적으로 사용할 속성들을 모두 넣어놓기
+                cnf_editor.add_req_attribute('countryName', ca_record.country_name)
+                cnf_editor.add_req_attribute('stateOrProvinceName', ca_record.province_name)
+                cnf_editor.add_req_attribute('localityName', ca_record.locality_name)
+                cnf_editor.add_req_attribute('0.organizationName', ca_record.organization_name)
+                cnf_editor.add_req_attribute('organizationalUnitName', ca_record.organizational_unit_name)
+                cnf_editor.add_req_attribute('commonName', ca_record.common_name)
+                cnf_editor.add_req_attribute('emailAddress', ca_record.email_address)
+
                 ssl_cnf = NamedTemporaryFile("w+")
-                ssl_cnf.write(caconfig)
+                ssl_cnf.write(cnf_editor.export())
                 ssl_cnf.seek(0)
 
-                REQ = "openssl req -config {ssl_cnf}".format(ssl_cnf=ssl_cnf.name)
+                REQ = f"openssl req -config {ssl_cnf.name} -passin file:{PASSWD_FILE.name}"
 
-                CAKEY = (new_ca_root / "private" / "cakey.pem").resolve()
                 CAREQ = (new_ca_root / "careq.pem").resolve()
                 CACERT = (new_ca_root / "cacert.pem").resolve()
 
                 # TODO: extra options... (1 args)
-                RET1 = "{REQ} -new -keyout {CAKEY} -out {CAREQ}".format(
-                    REQ=str(REQ), CAKEY=str(CAKEY), CAREQ=str(CAREQ))
+                RET1 = f"{REQ} -new -key {CAKEY} -out {CAREQ} -sha256"
 
-                ssl_req = pexpect.spawn(RET1, encoding='utf-8')
-                ssl_req.expect('Enter PEM pass phrase:')
-                ssl_req.sendline(ca_record.capass)
-                ssl_req.expect('Verifying - Enter PEM pass phrase:')
-                ssl_req.sendline(ca_record.capass)
+                # ssl_req = pexpect.spawn(RET1, encoding='utf-8')
+                # ssl_req.expect('Enter PEM pass phrase:')
+                # ssl_req.sendline(ca_record.capass)
+                # ssl_req.expect('Verifying - Enter PEM pass phrase:')
+                # ssl_req.sendline(ca_record.capass)
+                #
+                # ssl_req.expect('Country Name.*:')
+                # ssl_req.sendline(ca_record.country_name)
+                # ssl_req.expect('State or Province Name.*:')
+                # ssl_req.sendline(ca_record.province_name)
+                # ssl_req.expect('Locality Name.*:')
+                # ssl_req.sendline(ca_record.locality_name)
+                # ssl_req.expect('Organization Name.*:')
+                # ssl_req.sendline(ca_record.organization_name)
+                # ssl_req.expect('Organizational Unit Name.*:')
+                # ssl_req.sendline(ca_record.organizational_unit_name)
+                # ssl_req.expect('Common Name.*:')
+                # ssl_req.sendline(ca_record.common_name)
+                # ssl_req.expect('Email Address.*:')
+                # ssl_req.sendline(ca_record.email_address)
+                # ssl_req.expect('A challenge password.*:')
+                # ssl_req.sendline(".")
+                # ssl_req.expect('An optional company name.*:')
+                # ssl_req.sendline(".")
+                # ssl_req.expect(pexpect.EOF)
+                # ssl_req.wait()
+                ret = subprocess.check_output(shlex.split(RET1))
+                # print(ret.returncode)
 
-                ssl_req.expect('Country Name.*:')
-                ssl_req.sendline(ca_record.country_name)
-                ssl_req.expect('State or Province Name.*:')
-                ssl_req.sendline(ca_record.province_name)
-                ssl_req.expect('Locality Name.*:')
-                ssl_req.sendline(ca_record.locality_name)
-                ssl_req.expect('Organization Name.*:')
-                ssl_req.sendline(ca_record.organization_name)
-                ssl_req.expect('Organizational Unit Name.*:')
-                ssl_req.sendline(ca_record.organizational_unit_name)
-                ssl_req.expect('Common Name.*:')
-                ssl_req.sendline(ca_record.common_name)
-                ssl_req.expect('Email Address.*:')
-                ssl_req.sendline(ca_record.email_address)
-                ssl_req.expect('A challenge password.*:')
-                ssl_req.sendline(".")
-                ssl_req.expect('An optional company name.*:')
-                ssl_req.sendline(".")
-                ssl_req.expect(pexpect.EOF)
-                ssl_req.wait()
+                CA_CMD = f"openssl ca -config {ssl_cnf.name}"
 
-                CA_CMD = "openssl ca -config {ssl_cnf}".format(ssl_cnf=ssl_cnf.name)
-
-                RET2 = ("{CA} -create_serial"
-                        " -out {CACERT} -days {CADAYS} -batch"
+                RET2 = (f"{CA_CMD} -create_serial"
+                        " -out {CACERT} -days {ca_record.cadays} -batch"
                         " -keyfile {CAKEY} -selfsign"
                         " -extensions v3_ca"
-                        " -infiles {CAREQ}").format(
-                    CA=CA_CMD, CACERT=str(CACERT), CADAYS=str(ca_record.cadays), CAKEY=str(CAKEY), CAREQ=str(CAREQ))
+                        " -infiles {CAREQ} -passin file:{PASSWD_FILE.name}")
 
-                ssl_ca = pexpect.spawn(RET2, encoding='utf-8')
-                ssl_ca.expect('Enter pass phrase for.*:')
-                ssl_ca.sendline(ca_record.capass)
-                ssl_ca.expect(pexpect.EOF)
-                ssl_ca.wait()
+                # ssl_ca = pexpect.spawn(RET2, encoding='utf-8')
+                # ssl_ca.expect('Enter pass phrase for.*:')
+                # ssl_ca.sendline(ca_record.capass)
+                # ssl_ca.expect(pexpect.EOF)
+                # ssl_ca.wait()
+                ret = subprocess.check_output(shlex.split(RET2))
+                # print(ret.returncode)
 
                 print("CA certificate is in {CACERT}".format(CACERT=str(CACERT)))
 
