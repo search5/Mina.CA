@@ -8,3 +8,4 @@ paginate
 paginate-sqlalchemy
 sqlalchemy-stubs
 python-slugify[unicode]
+pyopenssl
