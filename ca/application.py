@@ -584,5 +584,5 @@ def shutdown_session(exception=None):
 @app.context_processor
 def mina_processor():
     return dict(
-        certificate_status=lambda x: 'active' if request.args.get('filter_type', 'CERTFICATED') == x else 'link-dark'
+        certificate_status=lambda x: 'active' if request.args.get('filter_type', 'CERTIFICATED') == x else 'link-dark'
     )

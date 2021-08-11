@@ -2,96 +2,95 @@
 
 {% block main %}
   <div class="starter-template">
-    <img src="{{ url_for('static', filename='img/mina_ca.png') }}">
     <div class="row">
       <div class="col-6">
         <h4>인증기관 추가</h4>
         <form>
-          <div class="form-group row">
+          <div class="form-group row mt-2">
             <label for="inputCAtitle"
                    class="col-sm-3 col-form-label">{{ form.catitle.label }}</label>
             <div class="col-sm-9">
               {{ form.catitle(class_="form-control", id="inputCAtitle", placeholder="인증기관명", **{"v-model": "ca_info.catitle"}) }}
             </div>
           </div>
-          <div class="form-group row">
+          <div class="form-group row mt-2">
             <label for="inputCATop"
                    class="col-sm-3 col-form-label">{{ form.catop.label }}</label>
             <div class="col-sm-9">
               {{ form.catop(class_="form-control", id="inputCATop", placeholder="CA 디렉터리", **{"v-model": "ca_info.catop"}) }}
             </div>
           </div>
-          <div class="form-group row">
+          <div class="form-group row mt-2">
             <label for="inputCAType"
                    class="col-sm-3 col-form-label">{{ form.catype.label }}</label>
             <div class="col-sm-9">
               {{ form.catype(class_="form-control", id="inputCAType", **{"v-model": "ca_info.catype"}) }}
             </div>
           </div>
-          <div class="form-group row">
+          <div class="form-group row mt-2">
             <label for="inputCAPass"
                    class="col-sm-3 col-form-label">{{ form.capass.label }}</label>
             <div class="col-sm-9">
               {{ form.capass(class_="form-control", id="inputCAPass", placeholder="루트인증서 비밀키", **{"v-model": "ca_info.capass"}) }}
             </div>
           </div>
-          <div class="form-group row">
+          <div class="form-group row mt-2">
             <label for="inputCountryName"
                    class="col-sm-3 col-form-label">{{ form.country_name.label }}</label>
             <div class="col-sm-9">
               {{ form.country_name(class_="form-control", id="inputCountryName", placeholder="2자리 국가코드", **{"v-model": "ca_info.country_name"}) }}
             </div>
           </div>
-          <div class="form-group row">
+          <div class="form-group row mt-2">
             <label for="inputProvinceName"
                    class="col-sm-3 col-form-label">{{ form.province_name.label }}</label>
             <div class="col-sm-9">
               {{ form.province_name(class_="form-control", id="inputProvinceName", placeholder="시/도", **{"v-model": "ca_info.province_name"}) }}
             </div>
           </div>
-          <div class="form-group row">
+          <div class="form-group row mt-2">
             <label for="inputLocalityName"
                    class="col-sm-3 col-form-label">{{ form.locality_name.label }}</label>
             <div class="col-sm-9">
               {{ form.locality_name(class_="form-control", id="inputLocalityName", placeholder="구/군/시", **{"v-model": "ca_info.locality_name"}) }}
             </div>
           </div>
-          <div class="form-group row">
+          <div class="form-group row mt-2">
             <label for="inputOrganizationName"
                    class="col-sm-3 col-form-label">{{ form.organization_name.label }}</label>
             <div class="col-sm-9">
               {{ form.organization_name(class_="form-control", id="inputOrganizationName", placeholder="회사명", **{"v-model": "ca_info.organization_name"}) }}
             </div>
           </div>
-          <div class="form-group row">
+          <div class="form-group row mt-2">
             <label for="inputOrganizationalUnitName"
                    class="col-sm-3 col-form-label">{{ form.organizational_unit_name.label }}</label>
             <div class="col-sm-9">
               {{ form.organizational_unit_name(class_="form-control", id="inputOrganizationalUnitName", placeholder="부서명", **{"v-model": "ca_info.organizational_unit_name"}) }}
             </div>
           </div>
-          <div class="form-group row">
+          <div class="form-group row mt-2">
             <label for="inputCommonName"
                    class="col-sm-3 col-form-label">{{ form.common_name.label }}</label>
             <div class="col-sm-9">
               {{ form.common_name(class_="form-control", id="inputCommonName", placeholder="도메인명", **{"v-model": "ca_info.common_name"}) }}
             </div>
           </div>
-          <div class="form-group row">
+          <div class="form-group row mt-2">
             <label for="inputEmailAddress"
                    class="col-sm-3 col-form-label">{{ form.email_address.label }}</label>
             <div class="col-sm-9">
               {{ form.email_address(class_="form-control", id="inputEmailAddress", placeholder="담당자 이메일", **{"v-model": "ca_info.email_address"}) }}
             </div>
           </div>
-          <div class="form-group row">
+          <div class="form-group row mt-2">
             <label for="inputCADays"
                    class="col-sm-3 col-form-label">{{ form.cadays.label }}</label>
             <div class="col-sm-9">
               {{ form.cadays(type="number", class_="form-control", id="inputCADays", placeholder="인증기관 유효기간(D)", **{"v-model": "ca_info.cadays"}) }}
             </div>
           </div>
-          <div class="form-group row">
+          <div class="form-group row mt-2">
             <div class="col-sm-10">
               <button type="button" class="btn btn-primary" @click.prevent="submit">추가</button>
             </div>
