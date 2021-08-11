@@ -581,6 +581,7 @@ def shutdown_session(exception=None):
 
     db_session.remove()
 
+
 @app.context_processor
 def mina_processor():
     return dict(
