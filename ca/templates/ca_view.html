@@ -1,47 +1,55 @@
-{% extends "ca_view_base.html" %}
+{% extends "ca_base.jinja2" %}
 
-{% block ca_view %}
-<div class="row">
-  <div class="col-12">
-    <table class="table table-hover">
-      <tr>
-        <th>번호</th>
-        <th>인증서비스</th>
-        <th>Common Name</th>
-        <th>인증서 상태</th>
-        <th>요청일</th>
-        <th>인증일</th>
-      </tr>
-      {% for row in paginator %}
-        <tr>
-          <th>{{ (total_cnt - (items_per_page * (page - 1))) - loop.index0 }}</th>
-          <td><a href="{{ url_for('certificate_view', catop=ca_record.catop, cert_id=row.id) }}">{{ row.cert_title }}</a></td>
-          <td>{{ row.common_name }}</td>
-          <td>{{ row.cert_status }}</td>
-          <td>{{ row.created_date }}</td>
-          <td>{{ row.certificate_date and row.certificate_date.strftime('%Y-%m-%d %H:%M:%S') or '' }}</td>
-        </tr>
-      {% endfor %}
-    </table>
-    <div class="row">
-      <div class="col-12 text-center">
-        <nav>
-            <ul class="pagination justify-content-start">
-              {{ paginator.pager(
-                   dotdot_attr={'class':'spacer'},
-                   symbol_first='',
-                   symbol_last='',
-                   symbol_previous='<a href="#"><span>&laquo;</span></a>',
-                   symbol_next='<a href="#"><span>&raquo;</span></a>',
-                   link_tag=paginate_link_tag,
-                   url=page_url|safe) | safe }}
-            </ul>
-          </nav>
-      </div>
+{% block main %}
+    <div class="starter-template text-left">
+        {% include "macro/ca_info.jinja2" %}
+        <div class="row mt-3">
+            <div class="col-12">
+                <table class="table table-hover text-center">
+                  <tr>
+                    <th>번호</th>
+                    <th>인증서비스</th>
+                    <th>Common Name</th>
+                    <th>인증서 상태</th>
+                    <th>요청일</th>
+                    <th>인증일</th>
+                  </tr>
+                  {% for row in paginator %}
+                    <tr>
+                      <th>{{ (total_cnt - (items_per_page * (page - 1))) - loop.index0 }}</th>
+                      <td><a href="{{ url_for('certificate_view', catop=ca_record.catop, cert_id=row.id) }}">{{ row.cert_title }}</a></td>
+                      <td>{{ row.common_name }}</td>
+                      <td>{{ row.cert_status }}</td>
+                      <td>{{ row.created_date }}</td>
+                      <td>{{ row.certificate_date and row.certificate_date.strftime('%Y-%m-%d %H:%M:%S') or '' }}</td>
+                    </tr>
+                  {% endfor %}
+                </table>
+            </div>
+        </div>
+        <div class="row">
+          <div class="col-12 text-center">
+            <nav>
+                <ul class="pagination justify-content-start">
+                  {{ paginator.pager(
+                       dotdot_attr={'class':'spacer'},
+                       symbol_first='',
+                       symbol_last='',
+                       symbol_previous='<a href="#"><span>&laquo;</span></a>',
+                       symbol_next='<a href="#"><span>&raquo;</span></a>',
+                       link_tag=paginate_link_tag,
+                       url=page_url|safe) | safe }}
+                </ul>
+              </nav>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-12">
+              <a href="{{ url_for('ca_csr_new', catop=ca_record.catop) }}" class="btn btn-success">요청서 생성</a>
+              <!-- TODO -->
+              <a href="{{ url_for('ca_csr_new', catop=ca_record.catop) }}" class="btn btn-primary">요청서 업로드</a>
+          </div>
+        </div>
     </div>
-  </div>
-</div>
-<div class="row">
-  <div class="col-12"><a href="{{ url_for('ca_csr_new', catop=ca_record.catop) }}" class="btn btn-success">요청서 생성</a></div>
 </div>
 {% endblock %}

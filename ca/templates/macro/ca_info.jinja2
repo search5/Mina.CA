@@ -1,0 +1,40 @@
+<div class="row text-left">
+  <div class="col-12 text-left">
+    <h4>인증기관 정보</h4>
+    <div class="row">
+      <div class="col-2 p-2 bg-light"><span class="font-weight-bold">인증기관명</span></div>
+      <div class="col-6 p-2">{{ ca_record.catitle }}</div>
+      <div class="col-2 p-2 bg-light"><span class="font-weight-bold">국가코드</span></div>
+      <div class="col-2 p-2">{{ ca_record.country_name }}</div>
+    </div>
+  <div class="row">
+      <div class="col-2 p-2 bg-light"><span class="font-weight-bold">CA Dir</span></div>
+      <div class="col-2 p-2">{{ ca_record.catop }}</div>
+      <div class="col-2 p-2 bg-light"><span class="font-weight-bold">CA 타입</span></div>
+      <div class="col-2 p-2">{{ ca_record.catype }}</div>
+      <div class="col-2 p-2 bg-light"><span class="font-weight-bold">시/도</span></div>
+      <div class="col-2 p-2">{{ ca_record.province_name }}</div>
+    </div>
+    <div class="row">
+
+      <div class="col-2 p-2 bg-light"><span class="font-weight-bold">시/군/구</span></div>
+      <div class="col-2 p-2">{{ ca_record.locality_name }}</div>
+      <div class="col-2 p-2 bg-light"><span class="font-weight-bold">조직명</span></div>
+      <div class="col-2 p-2">{{ ca_record.organization_name }}</div>
+      <div class="col-2 p-2 bg-light"><span class="font-weight-bold">부서</span></div>
+      <div class="col-2 p-2">{{ ca_record.organizational_unit_name }}</div>
+    </div>
+    <div class="row">
+      <div class="col-2 p-2 bg-light"><span class="font-weight-bold">담당자 이메일</span></div>
+      <div class="col-4 p-2">{{ ca_record.email_address }}</div>
+      <div class="col-2 p-2 bg-light"><span class="font-weight-bold">CA 도메인</span></div>
+      <div class="col-4 p-2">{{ ca_record.common_name }}</div>
+    </div>
+    <div class="row">
+      <div class="col-2 p-2 bg-light"><span class="font-weight-bold">유효기간(일단위)</span></div>
+      <div class="col-4 p-2">{{ ca_record.cadays }} <span class="text-danger">(인증서 만료까지 {{ left_ca_days }} 남았습니다)</span></div>
+      <div class="col-2 p-2 bg-light"><span class="font-weight-bold">생성일자</span></div>
+      <div class="col-4 p-2">{{ ca_record.created_date }}</div>
+    </div>
+  </div>
+</div>

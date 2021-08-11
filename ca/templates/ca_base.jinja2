@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block js %}
+    {#<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.10/vue.min.js" integrity="sha256-chlNFSVx3TdcQ2Xlw7SvnbLAavAQLO0Y/LBiWX04viY=" crossorigin="anonymous"></script>#}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.10/vue.js" integrity="sha256-ufGElb3TnOtzl5E4c/qQnZFGP+FYEZj5kbSEdJNrw0A=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js" integrity="sha256-S1J4GVHHDMiirir9qsXWc8ZWw74PHHafpsHp5PXtjTs=" crossorigin="anonymous"></script>
+{% endblock %}
+
+{% block left_menu %}
+    <li class="nav-item">
+        <a href="{{ url_for('ca_view', catop=ca_record.catop, filter_type='CERTIFICATED') }}" class="nav-link {{ certificate_status('CERTIFICATED') }}" aria-current="page">
+            <svg class="bi me-2" width="16" height="16"><use xlink:href="#home"></use></svg>서명완료
+        </a>
+    </li>
+    <li>
+        <a href="{{ url_for('ca_view', catop=ca_record.catop, filter_type='REVOKE') }}" class="nav-link {{ certificate_status('REVOKE') }}">
+            <svg class="bi me-2" width="16" height="16"><use xlink:href="#speedometer2"></use></svg>폐기됨
+        </a>
+    </li>
+    <li>
+        <a href="{{ url_for('ca_view', catop=ca_record.catop, filter_type='CSR') }}" class="nav-link {{ certificate_status('CSR') }}">
+            <svg class="bi me-2" width="16" height="16"><use xlink:href="#speedometer2"></use></svg>대기중
+        </a>
+    </li>
+{% endblock %}

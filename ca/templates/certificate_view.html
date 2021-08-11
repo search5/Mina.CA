@@ -1,6 +1,7 @@
-{% extends "ca_view_base.html" %}
+{% extends "ca_base.jinja2" %}
 
-{% block ca_view %}
+{% block main %}
+    <div class="starter-template text-left">
   <div class="row ml-1 mr-1 mb-2">
     <div class="col-2 p-2 text-white" style="background-color: cornflowerblue;"><span class="font-weight-bold">서비스명</span></div>
     <div class="col-6 p-2 border">{{ cert_record.cert_title }}</div>
@@ -42,7 +43,7 @@
           <button class="btn btn-primary" onclick="certificate_sign('{{ cert_record.id }}')">승인</button>
           <button class="btn btn-danger" onclick="certificate_delete('{{ cert_record.id }}')">삭제</button>
         {% elif cert_record.cert_status == "CERTIFICATED" %}
-          <button class="btn btn-danger" data-toggle="modal" data-target="#certificate_revoke">박탈</button>
+          <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#certificate_revoke">박탈</button>
           <a href="{{ url_for('certificate_download', catop=ca_record.catop, cert_id=cert_record.id, ca_include="true") }}" class="btn btn-success">인증서 다운로드(CA 포함)</a>
           <a href="{{ url_for('certificate_download', catop=ca_record.catop, cert_id=cert_record.id, ca_include="false") }}" class="btn btn-success">인증서 다운로드(CA 제외)</a>
         {% endif %}
@@ -73,9 +74,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="certificateRevokeLabel">인증서 인증 취소</h5>
-          <button type="button" class="close" data-dismiss="modal">
-            <span aria-hidden="true">&times;</span>
-          </button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <div class="form-group row">
@@ -102,12 +101,13 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
           <button type="button" class="btn btn-primary" onclick="certificate_revoke('{{ cert_record.id }}')">인증 취소 실행</button>
         </div>
       </div>
     </div>
   </div>
+    </div>
 {% endblock %}
 
 {% block footer_js %}

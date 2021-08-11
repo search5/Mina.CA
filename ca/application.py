@@ -2,7 +2,7 @@ import os
 import shlex
 import shutil
 import subprocess
-import sys
+import logging
 import tempfile
 import time
 from datetime import timedelta, datetime
@@ -33,7 +33,12 @@ os.environ["CA_ROOTS"] = "/opt/ca"
 
 @app.route('/')
 def mina_ca_main():
-    return redirect(url_for('ca_list'))
+    return redirect(url_for('login_page'))
+
+
+@app.route('/login')
+def login_page():
+    return render_template('login.jinja2')
 
 
 @app.route("/ca")
@@ -130,7 +135,7 @@ def ca_add_post():
                 cnf_editor.add_ca_info('dir', ca_root_resolve)
                 ca_record.caconfig = cnf_editor.export()
 
-                print("Making CA certificate ...\n")
+                logging.debug("Making CA certificate ...\n")
 
                 # cakey.pem은 여기서 먼저 생성한다.
                 CAKEY = (new_ca_root / "private" / "cakey.pem").resolve()
@@ -190,7 +195,7 @@ def ca_add_post():
                 # ssl_req.expect(pexpect.EOF)
                 # ssl_req.wait()
                 ret = subprocess.check_output(shlex.split(RET1))
-                # print(ret.returncode)
+                # logging.debug(ret.returncode)
 
                 CA_CMD = f"openssl ca -config {ssl_cnf.name}"
 
@@ -206,9 +211,9 @@ def ca_add_post():
                 # ssl_ca.expect(pexpect.EOF)
                 # ssl_ca.wait()
                 ret = subprocess.check_output(shlex.split(RET2))
-                # print(ret.returncode)
+                # logging.debug(ret.returncode)
 
-                print("CA certificate is in {CACERT}".format(CACERT=str(CACERT)))
+                logging.debug("CA certificate is in {CACERT}".format(CACERT=str(CACERT)))
 
         db_session.add(ca_record)
     else:
@@ -219,6 +224,12 @@ def ca_add_post():
 
 @app.route("/ca/<catop>")
 def ca_view(catop):
+    current_page = request.args.get("page", 1, type=int)
+    filter_type = request.args.get('filter_type', 'CERTIFICATED')
+    logging.debug(filter_type)
+    search_option = request.args.get("search_option", '')
+    search_word = request.args.get("search_word", '')
+
     ca_record = CA.query.filter(CA.catop == catop).first()
 
     if not ca_record:
@@ -228,15 +239,11 @@ def ca_view(catop):
     left_ca_days = "{days} 일 {times}".format(days=left_ca_days.days,
                                              times=time.strftime("%H시 %M분 %S초", time.gmtime(left_ca_days.seconds)))
 
-    current_page = request.args.get("page", 1, type=int)
-    search_option = request.args.get("search_option", '')
-    search_word = request.args.get("search_word", '')
-
     search_column: Column = None
     if search_option:
         search_column: Column = getattr(Certficate, search_option)
 
-    page_url = url_for("ca_view", catop=ca_record.catop)
+    page_url = url_for("ca_view", catop=ca_record.catop, filter_type=filter_type)
     if search_word:
         page_url = url_for("ca_view", catop=ca_record.catop, search_option=search_option, search_word=search_word)
         page_url = str(page_url) + "&page=$page"
@@ -245,7 +252,7 @@ def ca_view(catop):
 
     items_per_page = 10
 
-    records = db_session.query(Certficate)
+    records = db_session.query(Certficate).filter(Certficate.cert_status == filter_type)
     if search_word:
         records = records.filter(search_column.ilike('%{}%'.format(search_word)))
     records = records.order_by(desc(Certficate.id))
@@ -344,7 +351,7 @@ def cert_csr_new_post(catop):
         ssl_req.expect(pexpect.EOF)
         ssl_req.wait()
 
-        print("Request is in {NEWREQ}, private key is in {NEWKEY}".format(NEWKEY=str(NEWKEY), NEWREQ=str(NEWREQ)))
+        logging.debug("Request is in {NEWREQ}, private key is in {NEWKEY}".format(NEWKEY=str(NEWKEY), NEWREQ=str(NEWREQ)))
 
         # 히스토리 남기기
         cert_record.parent_id = ca_record.id
@@ -449,7 +456,7 @@ def certificate_sign(catop, cert_id):
         })
         flag_modified(cert_record, "history")
 
-        print("Signed certificate is in {NEWCERT}".format(NEWCERT=str(NEWCERT)))
+        logging.debug("Signed certificate is in {NEWCERT}".format(NEWCERT=str(NEWCERT)))
 
         ret['message'] = '이 인증서를 사인했습니다'
     else:
@@ -573,3 +580,9 @@ def shutdown_session(exception=None):
         db_session.commit()
 
     db_session.remove()
+
+@app.context_processor
+def mina_processor():
+    return dict(
+        certificate_status=lambda x: 'active' if request.args.get('filter_type', 'CERTFICATED') == x else 'link-dark'
+    )

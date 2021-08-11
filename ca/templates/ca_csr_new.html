@@ -1,83 +1,87 @@
-{% extends "ca_view_base.html" %}
+{% extends "ca_base.jinja2" %}
 
-{% block ca_view %}
+{% block main %}
+    <div class="starter-template text-left">
+        {% include "macro/ca_info.jinja2" %}
+        <hr>
   <form>
-    <div class="form-group row">
+    <div class="form-group row mt-2">
       <label for="inputCertTitle"
              class="col-sm-2 col-form-label">{{ form.cert_title.label }}</label>
       <div class="col-sm-9">
         {{ form.cert_title(class_="form-control", id="inputCertTitle", placeholder="인증서 회사(또는 서비스)명", **{"v-model": "cert_info.cert_title"}) }}
       </div>
     </div>
-    <div class="form-group row">
+    <div class="form-group row mt-2">
       <label for="inputCertPass"
              class="col-sm-2 col-form-label">{{ form.cert_pass.label }}</label>
       <div class="col-sm-9">
         {{ form.cert_pass(class_="form-control", id="inputCertPass", placeholder="인증서 비밀키", **{"v-model": "cert_info.cert_pass"}) }}
       </div>
     </div>
-    <div class="form-group row">
+    <div class="form-group row mt-2">
       <label for="inputCountryName"
              class="col-sm-2 col-form-label">{{ form.country_name.label }}</label>
       <div class="col-sm-9">
         {{ form.country_name(class_="form-control", id="inputCountryName", placeholder="2자리 국가코드", **{"v-model": "cert_info.country_name"}) }}
       </div>
     </div>
-    <div class="form-group row">
+    <div class="form-group row mt-2">
       <label for="inputProvinceName"
              class="col-sm-2 col-form-label">{{ form.province_name.label }}</label>
       <div class="col-sm-9">
         {{ form.province_name(class_="form-control", id="inputProvinceName", placeholder="시/도", **{"v-model": "cert_info.province_name"}) }}
       </div>
     </div>
-    <div class="form-group row">
+    <div class="form-group row mt-2">
       <label for="inputLocalityName"
              class="col-sm-2 col-form-label">{{ form.locality_name.label }}</label>
       <div class="col-sm-9">
         {{ form.locality_name(class_="form-control", id="inputLocalityName", placeholder="구/군/시", **{"v-model": "cert_info.locality_name"}) }}
       </div>
     </div>
-    <div class="form-group row">
+    <div class="form-group row mt-2">
       <label for="inputOr ganizationName"
              class="col-sm-2 col-form-label">{{ form.organization_name.label }}</label>
       <div class="col-sm-9">
         {{ form.organization_name(class_="form-control", id="inputOrganizationName", placeholder="회사명", **{"v-model": "cert_info.organization_name"}) }}
       </div>
     </div>
-    <div class="form-group row">
+    <div class="form-group row mt-2">
       <label for="inputOrganizationalUnitName"
              class="col-sm-2 col-form-label">{{ form.organizational_unit_name.label }}</label>
       <div class="col-sm-9">
         {{ form.organizational_unit_name(class_="form-control", id="inputOrganizationalUnitName", placeholder="부서명", **{"v-model": "cert_info.organizational_unit_name"}) }}
       </div>
     </div>
-    <div class="form-group row">
+    <div class="form-group row mt-2">
       <label for="inputCommonName"
              class="col-sm-2 col-form-label">{{ form.common_name.label }}</label>
       <div class="col-sm-9">
         {{ form.common_name(class_="form-control", id="inputCommonName", placeholder="도메인명", **{"v-model": "cert_info.common_name"}) }}
       </div>
     </div>
-    <div class="form-group row">
+    <div class="form-group row mt-2">
       <label for="inputEmailAddress"
              class="col-sm-2 col-form-label">{{ form.email_address.label }}</label>
       <div class="col-sm-9">
         {{ form.email_address(class_="form-control", id="inputEmailAddress", placeholder="담당자 이메일", **{"v-model": "cert_info.email_address"}) }}
       </div>
     </div>
-    <div class="form-group row">
+    <div class="form-group row mt-2">
       <label for="inputCertDays"
              class="col-sm-2 col-form-label">{{ form.cert_days.label }}</label>
       <div class="col-sm-9">
         {{ form.cert_days(type="number", class_="form-control", id="inputCertDays", placeholder="인증서 유효기간(D)", **{"v-model": "cert_info.cert_days"}) }}
       </div>
     </div>
-    <div class="form-group row">
+    <div class="form-group row mt-2">
       <div class="col-sm-10">
-        <button type="button" class="btn btn-primary" @click.prevent="submit">추가</button>
+        <button type="button" class="btn btn-primary" @click.prevent="submit">CSR 추가</button>
       </div>
     </div>
   </form>
+    </div>
 {% endblock %}
 
 {% block footer_js %}

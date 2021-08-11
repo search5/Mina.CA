@@ -5,6 +5,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql.ddl import CreateColumn
 import os
 
+print('sqlite:///{}'.format(os.environ["DB_PATH"]))
+
 engine = create_engine('sqlite:///{}'.format(os.environ["DB_PATH"]), convert_unicode=True)
 db_session = scoped_session(sessionmaker(autocommit=False,
                                          autoflush=False,
