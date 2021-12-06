@@ -1,0 +1,2 @@
+recursive-include ca/templates *
+recursive-include ca/static *
