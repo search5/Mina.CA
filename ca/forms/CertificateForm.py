@@ -12,3 +12,4 @@ class CertificateForm(Form):
     common_name = StringField('Common Name', validators=[validators.optional()], description='도메인명')
     email_address = StringField('Email Address', validators=[validators.optional()], description='담당자 이메일')
     cert_days = StringField('인증서 유효기간(일단위)', validators=[validators.input_required()])
+    sans = StringField('Subject Alternative Names (쉼표로 구분)', validators=[validators.optional()])

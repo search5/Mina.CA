@@ -1,71 +1,83 @@
 {% extends "base.html" %}
 
 {% block main %}
-<div class="starter-template">
-  <div class="card">
-    <div class="card-body">
-      <table class="table table-hover is-responsive">
-        <thead>
+<div class="m3-flex-between">
+  <div>
+    <h1 class="m3-page-title">인증기관(CA) 관리</h1>
+    <p class="m3-page-subtitle">구축된 최상위 및 중간 인증기관 목록을 조회하고 관리합니다.</p>
+  </div>
+  <a href="{{ url_for('ca_add') }}" class="m3-btn m3-btn-filled">
+    <span class="material-symbols-outlined">add</span>
+    CA 추가
+  </a>
+</div>
+
+<div class="m3-card m3-card-elevated">
+  <div class="m3-table-container">
+    <table class="m3-table">
+      <thead>
         <tr>
-          <th scope="col">#</th>
-          <th scope="col">인증기관명</th>
-          <th scope="col">인증기관 타입</th>
-          <th scope="col">회사명</th>
-          <th scope="col">도메인</th>
-          <th scope="col">생성시간</th>
+          <th>#</th>
+          <th>인증기관명</th>
+          <th>타입</th>
+          <th>회사명</th>
+          <th>도메인(Common Name)</th>
+          <th>생성일자</th>
         </tr>
-        </thead>
-        <tbody>
+      </thead>
+      <tbody>
         {% for row in paginator %}
           <tr>
-            <th>{{ (total_cnt - (items_per_page * (page - 1))) - loop.index0 }}</th>
-            <td><a href="{{ url_for('ca_view', catop=row.catop) }}">{{ row.catitle }}</a></td>
-            <td>{{ row.catype }}</td>
+            <td><strong>{{ (total_cnt - (items_per_page * (page - 1))) - loop.index0 }}</strong></td>
+            <td>
+              <a href="{{ url_for('ca_view', catop=row.catop) }}" style="color: var(--md-sys-color-primary); font-weight: 500; text-decoration: none;">
+                {{ row.catitle }}
+              </a>
+            </td>
+            <td>
+              {% if row.catype == 'ROOT' %}
+                <span class="m3-chip m3-chip-active">Root CA</span>
+              {% else %}
+                <span class="m3-chip m3-chip-csr">Intermediate CA</span>
+              {% endif %}
+            </td>
             <td>{{ row.organization_name }}</td>
-            <td>{{ row.common_name }}</td>
-            <td>{{ row.created_date }}</td>
+            <td><code>{{ row.common_name }}</code></td>
+            <td>{{ row.created_date.strftime('%Y-%m-%d %H:%M:%S') if row.created_date else '' }}</td>
           </tr>
         {% endfor %}
-        </tbody>
-      </table>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="margin-top: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+    <!-- Pagination -->
+    <div>
+      <nav>
+        <ul class="m3-pagination" style="display: flex; list-style: none; gap: 8px;">
+          {{ paginator.pager(
+               dotdot_attr={'class':'spacer'},
+               symbol_first='',
+               symbol_last='',
+               symbol_previous='&laquo;',
+               symbol_next='&raquo;',
+               link_tag=paginate_link_tag,
+               url=page_url|safe) | safe }}
+        </ul>
+      </nav>
     </div>
-    <div class="card-footer">
-      <div class="row">
-        <div class="col-6">
-          <nav>
-            <ul class="pagination justify-content-start">
-              {{ paginator.pager(
-                   dotdot_attr={'class':'spacer'},
-                   symbol_first='',
-                   symbol_last='',
-                   symbol_previous='<a href="#"><span>&laquo;</span></a>',
-                   symbol_next='<a href="#"><span>&raquo;</span></a>',
-                   link_tag=paginate_link_tag,
-                   url=page_url|safe) | safe }}
-            </ul>
-          </nav>
-        </div>
-        <div class="col-4">
-          <form action="{{ url_for('ca_list') }}" method="get">
-            <input type="hidden" name="page" value="{{ page }}">
-            <div class="input-group">
-              <div class="input-group-preped">
-                <select class="form-control" name="search_option">
-                  <option value="title">제목</option>
-                  <option value="content">내용</option>
-                </select>
-              </div>
-              <input type="text" class="form-control" placeholder="검색어를 입력하세요" name="search_word">
-              <div class="input-group-append">
-                <button class="btn btn-success" type="submit">검색하기</button>
-              </div>
-            </div>
-          </form>
-        </div>
-        <div class="col-2 text-right">
-          <a href="{{ url_for('ca_add') }}" class="btn btn-primary">CA 추가</a>
-        </div>
-      </div>
+    
+    <!-- Search Form -->
+    <div style="min-width: 320px;">
+      <form action="{{ url_for('ca_list') }}" method="get" class="m3-search-bar" style="margin-bottom: 0;">
+        <input type="hidden" name="page" value="{{ page }}">
+        <select class="m3-select" name="search_option" style="height: 48px; border-radius: var(--md-shape-corner-small); padding: 0 12px; font-size: 14px;">
+          <option value="catitle">인증기관명</option>
+          <option value="common_name">도메인</option>
+        </select>
+        <input type="text" class="m3-input" placeholder="검색어를 입력하세요" name="search_word" style="height: 48px; border-radius: var(--md-shape-corner-small); padding: 0 16px; font-size: 14px; flex-grow: 1;">
+        <button class="m3-btn m3-btn-elevated" type="submit" style="height: 48px;">검색</button>
+      </form>
     </div>
   </div>
 </div>

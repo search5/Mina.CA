@@ -1,123 +1,322 @@
-{% extends "ca_base.jinja2" %}
+{% extends ca_record and "ca_base.jinja2" or "base.html" %}
+
+{% block js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js" integrity="sha256-S1J4GVHHDMiirir9qsXWc8ZWw74PHHafpsHp5PXtjTs=" crossorigin="anonymous"></script>
+{% endblock %}
 
 {% block main %}
-    <div class="starter-template text-left">
-  <div class="row ml-1 mr-1 mb-2">
-    <div class="col-2 p-2 text-white" style="background-color: cornflowerblue;"><span class="font-weight-bold">서비스명</span></div>
-    <div class="col-6 p-2 border">{{ cert_record.cert_title }}</div>
-    <div class="col-1 p-2 text-white" style="background-color: cornflowerblue;"><span class="font-weight-bold">국가코드</span></div>
-    <div class="col-1 p-2 border">{{ cert_record.country_name }}</div>
-    <div class="col-1 p-2 text-white" style="background-color: cornflowerblue;"><span class="font-weight-bold">시/도</span></div>
-    <div class="col-1 p-2 border">{{ cert_record.province_name }}</div>
+<div class="m3-flex-between">
+  <div>
+    <h1 class="m3-page-title">인증서 상세 정보</h1>
+    <p class="m3-page-subtitle">발급된 클라이언트 인증서의 메타데이터와 상태 변경 이력을 조회합니다.</p>
   </div>
-  <div class="row ml-1 mr-1 mb-2">
-    <div class="col-2 p-2 text-white" style="background-color: cornflowerblue;"><span class="font-weight-bold">기관명</span></div>
-    <div class="col-5 p-2 border">{{ cert_record.organization_name }}</div>
-    <div class="col-1 p-2 text-white" style="background-color: cornflowerblue;"><span class="font-weight-bold">시/군/구</span></div>
-    <div class="col-1 p-2 border">{{ cert_record.locality_name }}</div>
-    <div class="col-1 p-2 text-white" style="background-color: cornflowerblue;"><span class="font-weight-bold">부서</span></div>
-    <div class="col-2 p-2 border">{{ cert_record.organizational_unit_name }}</div>
+  <div>
+    {% if ca_record %}
+      <a href="{{ url_for('ca_view', catop=ca_record.catop) }}" class="m3-btn m3-btn-outlined">목록으로</a>
+    {% else %}
+      <a href="{{ url_for('csr_pending_list') }}" class="m3-btn m3-btn-outlined">목록으로</a>
+    {% endif %}
   </div>
-  <div class="row ml-1 mr-1 mb-2">
-    <div class="col-2 p-2 text-white" style="background-color: cornflowerblue;"><span class="font-weight-bold">담당자 이메일</span></div>
-    <div class="col-2 p-2 border">{{ cert_record.email_address }}</div>
-    <div class="col-2 p-2 text-white" style="background-color: cornflowerblue;"><span class="font-weight-bold">인증서 도메인</span></div>
-    <div class="col-3 p-2 border">{{ cert_record.common_name }}</div>
-    <div class="col-2 p-2 text-white" style="background-color: cornflowerblue;"><span class="font-weight-bold">유효기간(일단위)</span></div>
-    <div class="col-1 p-2 border">{{ cert_record.cert_days }}</div>
-  </div>
-  <div class="row ml-1 mr-1 mb-2">
-    <div class="col-2 p-2 text-white" style="background-color: cornflowerblue;"><span class="font-weight-bold">생성일자</span></div>
-    <div class="col-10 p-2 border">{{ cert_record.created_date }}</div>
-  </div>
-  {% if cert_record.cert_status == 'CERTIFICATED' %}
-  <div class="row ml-1 mr-1 mb-2">
-    <div class="col-2 p-2 text-white" style="background-color: cornflowerblue;"><span class="font-weight-bold">유효기간</span></div>
-    <div class="col-10 p-2 border">{{ cert_record.certificate_date.strftime('%Y-%m-%d %H:%M:%S') }}</div>
-  </div>
-  {% endif %}
-  <div class="row">
-    <div class="col-12 text-right">
-      <div class="btn-group">
-        {% if cert_record.cert_status == 'CSR' %}
-          <button class="btn btn-primary" onclick="certificate_sign('{{ cert_record.id }}')">승인</button>
-          <button class="btn btn-danger" onclick="certificate_delete('{{ cert_record.id }}')">삭제</button>
-        {% elif cert_record.cert_status == "CERTIFICATED" %}
-          <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#certificate_revoke">박탈</button>
-          <a href="{{ url_for('certificate_download', catop=ca_record.catop, cert_id=cert_record.id, ca_include="true") }}" class="btn btn-success">인증서 다운로드(CA 포함)</a>
-          <a href="{{ url_for('certificate_download', catop=ca_record.catop, cert_id=cert_record.id, ca_include="false") }}" class="btn btn-success">인증서 다운로드(CA 제외)</a>
+</div>
+
+<div class="m3-card m3-card-elevated">
+  <h3 class="m3-card-title" style="display: flex; align-items: center; gap: 8px;">
+    <span class="material-symbols-outlined" style="color: var(--md-sys-color-primary);">badge</span>
+    인증서 프로필
+  </h3>
+  
+  <div class="m3-grid-details">
+    <div class="m3-detail-item" style="grid-column: span 2;">
+      <div class="m3-detail-label">서비스(인증서)명</div>
+      <div class="m3-detail-value">{{ cert_record.cert_title }}</div>
+    </div>
+    <div class="m3-detail-item">
+      <div class="m3-detail-label">국가코드 / 위치</div>
+      <div class="m3-detail-value">{{ cert_record.country_name }} / {{ cert_record.province_name }} ({{ cert_record.locality_name }})</div>
+    </div>
+    <div class="m3-detail-item">
+      <div class="m3-detail-label">조직 / 부서</div>
+      <div class="m3-detail-value">{{ cert_record.organization_name }} ({{ cert_record.organizational_unit_name }})</div>
+    </div>
+    <div class="m3-detail-item">
+      <div class="m3-detail-label">담당자 이메일</div>
+      <div class="m3-detail-value">{{ cert_record.email_address }}</div>
+    </div>
+    <div class="m3-detail-item">
+      <div class="m3-detail-label">Common Name (도메인)</div>
+      <div class="m3-detail-value"><code>{{ cert_record.common_name }}</code></div>
+    </div>
+    <div class="m3-detail-item">
+      <div class="m3-detail-label">유효기간 (일단위)</div>
+      <div class="m3-detail-value">{{ cert_record.cert_days }}일</div>
+    </div>
+    <div class="m3-detail-item">
+      <div class="m3-detail-label">인증서 상태</div>
+      <div class="m3-detail-value">
+        {% if cert_record.cert_status == 'CERTIFICATED' %}
+          <span class="m3-chip m3-chip-active">발급 완료 (ACTIVE)</span>
+        {% elif cert_record.cert_status == 'REVOKE' %}
+          <span class="m3-chip m3-chip-revoked">폐기됨 (REVOKED)</span>
+        {% else %}
+          <span class="m3-chip m3-chip-csr">대기중 (CSR)</span>
         {% endif %}
       </div>
     </div>
-  </div>
-  <div class="row mt-5">
-    <div class="col-12">
-      <h4>인증서 이력</h4>
-      <table class="table">
-        <tr>
-          <th style="width: 14%;">날짜</th>
-          <th>이력</th>
-        </tr>
-        {% for row in cert_record.history %}
-        <tr>
-          <td>{{ row['DATE'] }}</td>
-          <td>{{ row['NOTE'] }}</td>
-        </tr>
-        {% endfor %}
-      </table>
+    <div class="m3-detail-item" style="grid-column: span 2;">
+      <div class="m3-detail-label">생성일자</div>
+      <div class="m3-detail-value">{{ cert_record.created_date.strftime('%Y-%m-%d %H:%M:%S') if cert_record.created_date else '-' }}</div>
     </div>
+    {% if cert_record.cert_status == 'CERTIFICATED' %}
+    <div class="m3-detail-item" style="grid-column: span 2;">
+      <div class="m3-detail-label">발급일자</div>
+      <div class="m3-detail-value">{{ cert_record.certificate_date.strftime('%Y-%m-%d %H:%M:%S') if cert_record.certificate_date else '-' }}</div>
+    </div>
+    {% endif %}
   </div>
 
-  <!-- 인증 취소 모달 -->
-  <div class="modal fade" id="certificate_revoke" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="certificateRevokeLabel">인증서 인증 취소</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <div class="form-group row">
-            <label for="spanCertTitle" class="col-sm-3 col-form-label">인증서 이름</label>
-            <div class="col-sm-9">
-              <span id="spanCertTitle" class="form-control-static">{{ cert_record.cert_title }}</span>
-            </div>
-          </div>
-          <div class="form-group row">
-            <label for="crl_reason" class="col-sm-3 col-form-label">인증 취소 사유</label>
-            <div class="col-sm-9">
-              <select id="crl_reason" class="form-control">
-                <option value="">선택하세요</option>
-                <option value="unspecified">불특정</option>
-                <option value="keyCompromise">키 손상</option>
-                <option value="CACompromise">CA 타협</option>
-                <option value="affiliationChanged">소속 변경</option>
-                <option value="superseded">인증서 대체</option>
-                <option value="cessationOfOperation">운영중단</option>
-                <option value="certificateHold">인증보류</option>
-                <option value="removeFromCRL">CRL에서 제거</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary" onclick="certificate_revoke('{{ cert_record.id }}')">인증 취소 실행</button>
-        </div>
+  <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--md-sys-color-outline-variant); padding-top: 20px;">
+    {% if cert_record.cert_status == 'CSR' %}
+      <button class="m3-btn m3-btn-filled" onclick="openSignModal()">
+        <span class="material-symbols-outlined">done</span>
+        인증 요청 승인 (서명)
+      </button>
+      <button class="m3-btn m3-btn-error" onclick="certificate_delete('{{ cert_record.id }}')">
+        <span class="material-symbols-outlined">delete</span>
+        삭제
+      </button>
+    {% elif cert_record.cert_status == "CERTIFICATED" %}
+      <button class="m3-btn m3-btn-error" onclick="openRevokeModal()">
+        <span class="material-symbols-outlined">block</span>
+        인증서 박탈 (폐기)
+      </button>
+      <button class="m3-btn m3-btn-elevated" onclick="openDownloadModal()">
+        <span class="material-symbols-outlined">download</span>
+        인증서 다운로드 (옵션 설정)
+      </button>
+    {% endif %}
+  </div>
+</div>
+
+<div class="m3-card m3-card-elevated">
+  <h3 class="m3-card-title" style="display: flex; align-items: center; gap: 8px;">
+    <span class="material-symbols-outlined" style="color: var(--md-sys-color-primary);">history</span>
+    인증서 이력
+  </h3>
+  <div class="m3-table-container">
+    <table class="m3-table">
+      <thead>
+        <tr>
+          <th style="width: 250px;">날짜</th>
+          <th>기록된 이력 사항</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in cert_record.history %}
+        <tr>
+          <td><strong>{{ row['DATE'] }}</strong></td>
+          <td>{{ row['NOTE'] }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="2" style="text-align: center; color: var(--md-sys-color-outline);">등록된 이력이 없습니다.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- M3 인증 취소 모달 다이얼로그 -->
+<div class="m3-dialog-overlay" id="certificate_revoke_modal">
+  <div class="m3-dialog">
+    <h3 class="m3-dialog-title">인증서 승인 취소</h3>
+    <div class="m3-dialog-content">
+      <p style="margin-bottom: 16px;"><strong>{{ cert_record.cert_title }}</strong> 인증서의 발급 승인을 취소(폐기)합니다. 이 작업은 되돌릴 수 없습니다.</p>
+      
+      <div class="m3-form-group">
+        <label class="m3-label" for="crl_reason">인증 취소 사유 선택</label>
+        <select id="crl_reason" class="m3-select">
+          <option value="">취소 사유를 선택하세요</option>
+          <option value="unspecified">불특정 사유 (Unspecified)</option>
+          <option value="keyCompromise">비밀키 유출/손상 (Key Compromise)</option>
+          <option value="CACompromise">CA 시스템 침해 (CA Compromise)</option>
+          <option value="affiliationChanged">소속 정보 변경 (Affiliation Changed)</option>
+          <option value="superseded">새 인증서로 대체 (Superseded)</option>
+          <option value="cessationOfOperation">서비스 운영 중단 (Cessation of Operation)</option>
+          <option value="certificateHold">잠시 보류 (Certificate Hold)</option>
+        </select>
       </div>
     </div>
-  </div>
+    <div class="m3-dialog-actions">
+      <button type="button" class="m3-btn m3-btn-outlined" onclick="closeRevokeModal()">닫기</button>
+      <button type="button" class="m3-btn m3-btn-error" onclick="certificate_revoke('{{ cert_record.id }}')">
+        <span class="material-symbols-outlined" style="font-size: 18px;">block</span>
+        폐기 실행
+      </button>
     </div>
+  </div>
+</div>
+
+<!-- M3 서명 승인 다이얼로그 모달 -->
+<div class="m3-dialog-overlay" id="certificate_sign_modal">
+  <div class="m3-dialog">
+    <h3 class="m3-dialog-title">인증 요청 승인</h3>
+    <div class="m3-dialog-content">
+      <p style="margin-bottom: 16px;">상위 인증기관(CA)과 서명용 비밀키 암호를 입력하여 <strong>{{ cert_record.cert_title }}</strong> 인증서 발급을 최종 승인합니다.</p>
+      
+      <div class="m3-form-group" style="margin-bottom: 16px;">
+        <label class="m3-label" for="sign_ca_id">서명에 사용할 인증기관(CA)</label>
+        <select id="sign_ca_id" class="m3-select">
+          <option value="">서명 CA를 선택해 주세요</option>
+          {% for ca in ca_list_record %}
+            <option value="{{ ca.catop }}">{{ ca.catitle }} ({{ ca.common_name }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="m3-form-group">
+        <label class="m3-label" for="sign_ca_pass">CA 비밀키 비밀번호</label>
+        <input type="password" id="sign_ca_pass" class="m3-input" placeholder="비밀번호 입력">
+      </div>
+    </div>
+    <div class="m3-dialog-actions">
+      <button type="button" class="m3-btn m3-btn-outlined" onclick="closeSignModal()">취소</button>
+      <button type="button" class="m3-btn m3-btn-filled" onclick="certificate_sign('{{ cert_record.id }}')">
+        <span class="material-symbols-outlined" style="font-size: 18px;">done</span>
+        승인 서명 실행
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- M3 다운로드 옵션 조절 다이얼로그 모달 -->
+<div class="m3-dialog-overlay" id="certificate_download_modal">
+  <div class="m3-dialog">
+    <h3 class="m3-dialog-title">인증서 다운로드 옵션</h3>
+    <div class="m3-dialog-content">
+      <p style="margin-bottom: 16px; font-size: 14px; color: var(--md-sys-color-on-surface-variant);">
+        다운로드할 클라이언트 인증서와 비밀키 파일의 구성 방식을 선택합니다.
+      </p>
+
+      {% if cert_record.encrypted_private_key %}
+      <div class="m3-form-group" style="margin-bottom: 16px;">
+        <label class="m3-label" style="margin-bottom: 8px;">개인키 포맷 선택</label>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
+            <input type="radio" name="download_format" value="encrypted" checked onchange="toggleDownloadPassField(false)" style="accent-color: var(--md-sys-color-primary);"> 
+            기본 암호화 유지 다운로드 (보안 유지)
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
+            <input type="radio" name="download_format" value="decrypted" onchange="toggleDownloadPassField(true)" style="accent-color: var(--md-sys-color-primary);"> 
+            Plain 복호화 다운로드 (서버용 비밀번호 생략 포맷)
+          </label>
+        </div>
+      </div>
+
+      <div class="m3-form-group" id="download_password_group" style="display: none; margin-bottom: 16px;">
+        <label class="m3-label" for="download_key_pass">개인키 비밀번호 (복호화용)</label>
+        <input type="password" id="download_key_pass" class="m3-input" placeholder="발급 시 입력했던 비밀번호">
+        <span class="m3-helper-text">서버 측에서 기존 암호화 키를 해독하여 암호가 없는 Plain 키로 저장하기 위해 필요합니다.</span>
+      </div>
+      {% else %}
+      <div style="margin-bottom: 16px; padding: 12px; background-color: var(--md-sys-color-surface-container-high); border-radius: var(--md-shape-corner-medium); font-size: 13px; color: var(--md-sys-color-on-surface-variant);">
+        <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">info</span>
+        이 요청서는 외부 CSR 파일 직접 업로드 건으로, 개인키를 보관하고 있지 않아 인증서 파일들만 패킹되어 제공됩니다.
+      </div>
+      {% endif %}
+
+      <div class="m3-form-group">
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
+          <input type="checkbox" id="download_ca_include" checked style="accent-color: var(--md-sys-color-primary);">
+          상위 CA 체인 인증서 포함 (cacert.pem)
+        </label>
+      </div>
+    </div>
+    <div class="m3-dialog-actions">
+      <button type="button" class="m3-btn m3-btn-outlined" onclick="closeDownloadModal()">닫기</button>
+      <button type="button" class="m3-btn m3-btn-filled" onclick="executeDownload('{{ cert_record.id }}')">
+        <span class="material-symbols-outlined" style="font-size: 18px;">download</span>
+        다운로드 실행
+      </button>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block footer_js %}
   <script>
+  function openRevokeModal() {
+      document.getElementById('certificate_revoke_modal').style.display = 'flex';
+  }
+
+  function closeRevokeModal() {
+      document.getElementById('certificate_revoke_modal').style.display = 'none';
+  }
+
+  function openSignModal() {
+      var caIdSelect = document.getElementById('sign_ca_id');
+      if (caIdSelect) caIdSelect.value = '';
+      document.getElementById('sign_ca_pass').value = '';
+      document.getElementById('certificate_sign_modal').style.display = 'flex';
+  }
+
+  function closeSignModal() {
+      document.getElementById('certificate_sign_modal').style.display = 'none';
+  }
+
+  function openDownloadModal() {
+      var passGroup = document.getElementById('download_password_group');
+      if (passGroup) passGroup.style.display = 'none';
+      var passInput = document.getElementById('download_key_pass');
+      if (passInput) passInput.value = '';
+      
+      var encryptedRadio = document.querySelector('input[name="download_format"][value="encrypted"]');
+      if (encryptedRadio) encryptedRadio.checked = true;
+      
+      document.getElementById('certificate_download_modal').style.display = 'flex';
+  }
+
+  function closeDownloadModal() {
+      document.getElementById('certificate_download_modal').style.display = 'none';
+  }
+
+  function toggleDownloadPassField(show) {
+      var passGroup = document.getElementById('download_password_group');
+      if (passGroup) {
+          passGroup.style.display = show ? 'block' : 'none';
+      }
+  }
+
+  function executeDownload(cert_id) {
+      var caInclude = document.getElementById('download_ca_include').checked ? 'true' : 'false';
+      var formatEl = document.querySelector('input[name="download_format"]:checked');
+      var format = formatEl ? formatEl.value : 'encrypted';
+      
+      var downloadUrl = "{{ url_for('certificate_download', cert_id=cert_record.id) }}?ca_include=" + caInclude;
+      
+      if (format === 'decrypted') {
+          var keyPass = document.getElementById('download_key_pass').value;
+          if (!keyPass) {
+              alert('개인키를 복호화하기 위해 비밀번호를 입력해주세요.');
+              return;
+          }
+          downloadUrl += "&decrypt_key=true&key_password=" + encodeURIComponent(keyPass);
+      }
+      
+      closeDownloadModal();
+      window.location.href = downloadUrl;
+  }
+
   function certificate_delete(cert_id) {
       if (confirm('이 인증 요청서를 삭제하시겠습니까?')) {
-          axios.delete("{{ url_for('certificate_delete', catop=ca_record.catop, cert_id=cert_record.id ) }}").then(function (resp) {
+          axios.delete("/certificate/" + cert_id).then(function (resp) {
               if (resp.data.success) {
                   alert(resp.data.message)
-                  location.href = "{{ url_for('ca_view', catop=ca_record.catop) }}"
+                  {% if ca_record %}
+                    location.href = "{{ url_for('ca_view', catop=ca_record.catop) }}"
+                  {% else %}
+                    location.href = "{{ url_for('csr_pending_list') }}"
+                  {% endif %}
               } else {
                   alert(resp.data.message)
               }
@@ -126,16 +325,29 @@
   }
 
   function certificate_sign(cert_id) {
-      if (confirm('인증 요청서를 승인하시겠습니까?')) {
-          axios.post('{{ url_for('certificate_sign', catop=ca_record.catop, cert_id=cert_record.id ) }}').then(function (resp) {
-              if (resp.data.success) {
-                  alert(resp.data.message)
-                  location.reload()
-              } else {
-                  alert(resp.data.message)
-              }
-          })
+      var ca_id = document.getElementById('sign_ca_id').value;
+      var ca_pass = document.getElementById('sign_ca_pass').value;
+      if (!ca_id) {
+          alert('서명에 사용할 CA를 지정하셔야 합니다.');
+          return;
       }
+      if (!ca_pass) {
+          alert('비밀번호를 입력하셔야 서명이 가능합니다.');
+          return;
+      }
+      
+      closeSignModal();
+      
+      axios.post("/certificate/" + cert_id + "/sign", { ca_id: ca_id, capass: ca_pass }).then(function (resp) {
+          if (resp.data.success) {
+              alert(resp.data.message)
+              location.reload()
+          } else {
+              alert(resp.data.message)
+          }
+      }).catch(function(err) {
+          alert('서명 중 통신 오류가 발생했습니다.');
+      });
   }
 
   function certificate_revoke(cert_id) {
@@ -147,7 +359,7 @@
       }
 
       if (confirm('인증서 승인을 취소하시겠습니까?\n반복할 수 없습니다')) {
-          axios.post('{{ url_for('certificate_revoke', catop=ca_record.catop, cert_id=cert_record.id ) }}', {reason: crl_reason.value}).then(function (resp) {
+          axios.post("/certificate/" + cert_id + "/revoke", {reason: crl_reason.value}).then(function (resp) {
               if (resp.data.success) {
                   alert(resp.data.message)
                   location.reload()
@@ -159,3 +371,4 @@
   }
   </script>
 {% endblock %}
+

@@ -14,3 +14,4 @@ class CAForm(Form):
     common_name = StringField('Common Name', validators=[validators.optional()], description='도메인명')
     email_address = StringField('Email Address', validators=[validators.optional()], description='담당자 이메일')
     cadays = StringField('인증기관 유효기간(일단위)', validators=[validators.input_required()])
+    parent_id = SelectField('상위 CA', validators=[validators.optional()], choices=[])

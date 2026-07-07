@@ -1,87 +1,99 @@
-{% extends "ca_base.jinja2" %}
+{% extends "base.html" %}
+
+{% block js %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.10/vue.js" integrity="sha256-ufGElb3TnOtzl5E4c/qQnZFGP+FYEZj5kbSEdJNrw0A=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js" integrity="sha256-S1J4GVHHDMiirir9qsXWc8ZWw74PHHafpsHp5PXtjTs=" crossorigin="anonymous"></script>
+{% endblock %}
 
 {% block main %}
-    <div class="starter-template text-left">
-        {% include "macro/ca_info.jinja2" %}
-        <hr>
+<div class="m3-flex-between">
+  <div>
+    <h1 class="m3-page-title">신규 인증서 서명 요청(CSR) 생성</h1>
+    <p class="m3-page-subtitle">상위 인증기관에 제출할 새 클라이언트 인증서 서명 요청과 비밀키를 직접 생성합니다.</p>
+  </div>
+</div>
+
+<div class="m3-card m3-card-elevated" style="max-width: 800px; margin: 24px auto 0 auto;">
+  <h3 class="m3-card-title">인증 요청서 정보 입력</h3>
   <form>
-    <div class="form-group row mt-2">
-      <label for="inputCertTitle"
-             class="col-sm-2 col-form-label">{{ form.cert_title.label }}</label>
-      <div class="col-sm-9">
-        {{ form.cert_title(class_="form-control", id="inputCertTitle", placeholder="인증서 회사(또는 서비스)명", **{"v-model": "cert_info.cert_title"}) }}
+    <div class="m3-form-grid">
+      <!-- 서비스명 -->
+      <div class="m3-form-group m3-form-group-full">
+        <label class="m3-label" for="inputCertTitle">{{ form.cert_title.label }}</label>
+        {{ form.cert_title(class_="m3-input", id="inputCertTitle", placeholder="예: Web Server Certificate", **{"v-model": "cert_info.cert_title"}) }}
+      </div>
+
+      <!-- 비밀번호 -->
+      <div class="m3-form-group m3-form-group-full">
+        <label class="m3-label" for="inputCertPass">{{ form.cert_pass.label }}</label>
+        {{ form.cert_pass(class_="m3-input", id="inputCertPass", placeholder="인증서 개인키를 보호할 안전한 비밀번호 입력", **{"v-model": "cert_info.cert_pass"}) }}
+      </div>
+
+      <!-- 국가 코드 -->
+      <div class="m3-form-group">
+        <label class="m3-label" for="inputCountryName">{{ form.country_name.label }}</label>
+        {{ form.country_name(class_="m3-input", id="inputCountryName", placeholder="예: KR", **{"v-model": "cert_info.country_name"}) }}
+      </div>
+
+      <!-- 시/도 -->
+      <div class="m3-form-group">
+        <label class="m3-label" for="inputProvinceName">{{ form.province_name.label }}</label>
+        {{ form.province_name(class_="m3-input", id="inputProvinceName", placeholder="예: Gyeonggi-do", **{"v-model": "cert_info.province_name"}) }}
+      </div>
+
+      <!-- 구/군/시 -->
+      <div class="m3-form-group">
+        <label class="m3-label" for="inputLocalityName">{{ form.locality_name.label }}</label>
+        {{ form.locality_name(class_="m3-input", id="inputLocalityName", placeholder="예: Seongnam-si", **{"v-model": "cert_info.locality_name"}) }}
+      </div>
+
+      <!-- 회사명 -->
+      <div class="m3-form-group">
+        <label class="m3-label" for="inputOrganizationName">{{ form.organization_name.label }}</label>
+        {{ form.organization_name(class_="m3-input", id="inputOrganizationName", placeholder="예: Client Corp", **{"v-model": "cert_info.organization_name"}) }}
+      </div>
+
+      <!-- 부서명 -->
+      <div class="m3-form-group">
+        <label class="m3-label" for="inputOrganizationalUnitName">{{ form.organizational_unit_name.label }}</label>
+        {{ form.organizational_unit_name(class_="m3-input", id="inputOrganizationalUnitName", placeholder="예: Devops", **{"v-model": "cert_info.organizational_unit_name"}) }}
+      </div>
+
+      <!-- 도메인(CN) -->
+      <div class="m3-form-group">
+        <label class="m3-label" for="inputCommonName">{{ form.common_name.label }}</label>
+        {{ form.common_name(class_="m3-input", id="inputCommonName", placeholder="예: www.example.com", **{"v-model": "cert_info.common_name"}) }}
+      </div>
+
+      <!-- 이메일 -->
+      <div class="m3-form-group m3-form-group-full">
+        <label class="m3-label" for="inputEmailAddress">{{ form.email_address.label }}</label>
+        {{ form.email_address(class_="m3-input", id="inputEmailAddress", placeholder="예: engineer@example.com", **{"v-model": "cert_info.email_address"}) }}
+      </div>
+
+      <!-- 유효기간 -->
+      <div class="m3-form-group">
+        <label class="m3-label" for="inputCertDays">{{ form.cert_days.label }}</label>
+        {{ form.cert_days(type="number", class_="m3-input", id="inputCertDays", placeholder="예: 365 (최대 398일 제한)", **{"v-model": "cert_info.cert_days"}) }}
+      </div>
+
+      <!-- SAN (Subject Alternative Names) -->
+      <div class="m3-form-group">
+        <label class="m3-label" for="inputSans">{{ form.sans.label }}</label>
+        {{ form.sans(class_="m3-input", id="inputSans", placeholder="예: example.com, 10.0.0.1 (쉼표 구분)", **{"v-model": "cert_info.sans"}) }}
+        <span class="m3-helper-text">크롬 호환을 위해 추가 도메인 및 IP를 쉼표로 나열하세요.</span>
       </div>
     </div>
-    <div class="form-group row mt-2">
-      <label for="inputCertPass"
-             class="col-sm-2 col-form-label">{{ form.cert_pass.label }}</label>
-      <div class="col-sm-9">
-        {{ form.cert_pass(class_="form-control", id="inputCertPass", placeholder="인증서 비밀키", **{"v-model": "cert_info.cert_pass"}) }}
-      </div>
-    </div>
-    <div class="form-group row mt-2">
-      <label for="inputCountryName"
-             class="col-sm-2 col-form-label">{{ form.country_name.label }}</label>
-      <div class="col-sm-9">
-        {{ form.country_name(class_="form-control", id="inputCountryName", placeholder="2자리 국가코드", **{"v-model": "cert_info.country_name"}) }}
-      </div>
-    </div>
-    <div class="form-group row mt-2">
-      <label for="inputProvinceName"
-             class="col-sm-2 col-form-label">{{ form.province_name.label }}</label>
-      <div class="col-sm-9">
-        {{ form.province_name(class_="form-control", id="inputProvinceName", placeholder="시/도", **{"v-model": "cert_info.province_name"}) }}
-      </div>
-    </div>
-    <div class="form-group row mt-2">
-      <label for="inputLocalityName"
-             class="col-sm-2 col-form-label">{{ form.locality_name.label }}</label>
-      <div class="col-sm-9">
-        {{ form.locality_name(class_="form-control", id="inputLocalityName", placeholder="구/군/시", **{"v-model": "cert_info.locality_name"}) }}
-      </div>
-    </div>
-    <div class="form-group row mt-2">
-      <label for="inputOr ganizationName"
-             class="col-sm-2 col-form-label">{{ form.organization_name.label }}</label>
-      <div class="col-sm-9">
-        {{ form.organization_name(class_="form-control", id="inputOrganizationName", placeholder="회사명", **{"v-model": "cert_info.organization_name"}) }}
-      </div>
-    </div>
-    <div class="form-group row mt-2">
-      <label for="inputOrganizationalUnitName"
-             class="col-sm-2 col-form-label">{{ form.organizational_unit_name.label }}</label>
-      <div class="col-sm-9">
-        {{ form.organizational_unit_name(class_="form-control", id="inputOrganizationalUnitName", placeholder="부서명", **{"v-model": "cert_info.organizational_unit_name"}) }}
-      </div>
-    </div>
-    <div class="form-group row mt-2">
-      <label for="inputCommonName"
-             class="col-sm-2 col-form-label">{{ form.common_name.label }}</label>
-      <div class="col-sm-9">
-        {{ form.common_name(class_="form-control", id="inputCommonName", placeholder="도메인명", **{"v-model": "cert_info.common_name"}) }}
-      </div>
-    </div>
-    <div class="form-group row mt-2">
-      <label for="inputEmailAddress"
-             class="col-sm-2 col-form-label">{{ form.email_address.label }}</label>
-      <div class="col-sm-9">
-        {{ form.email_address(class_="form-control", id="inputEmailAddress", placeholder="담당자 이메일", **{"v-model": "cert_info.email_address"}) }}
-      </div>
-    </div>
-    <div class="form-group row mt-2">
-      <label for="inputCertDays"
-             class="col-sm-2 col-form-label">{{ form.cert_days.label }}</label>
-      <div class="col-sm-9">
-        {{ form.cert_days(type="number", class_="form-control", id="inputCertDays", placeholder="인증서 유효기간(D)", **{"v-model": "cert_info.cert_days"}) }}
-      </div>
-    </div>
-    <div class="form-group row mt-2">
-      <div class="col-sm-10">
-        <button type="button" class="btn btn-primary" @click.prevent="submit">CSR 추가</button>
-      </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+      <a href="{{ url_for('csr_pending_list') }}" class="m3-btn m3-btn-outlined">취소</a>
+      <button type="button" class="m3-btn m3-btn-filled" @click.prevent="submit">
+        <span class="material-symbols-outlined">description</span>
+        CSR 생성 완료
+      </button>
     </div>
   </form>
-    </div>
+</div>
 {% endblock %}
 
 {% block footer_js %}
@@ -99,19 +111,22 @@
           organizational_unit_name: "",
           common_name: "",
           email_address: "",
-          cert_days: ""
+          cert_days: "365",
+          sans: ""
         }
       },
       methods: {
         submit: function () {
-          axios.post("{{ url_for('cert_csr_new_post', catop=ca_record.catop) }}", this.cert_info).then(function (res) {
+          axios.post("{{ url_for('cert_csr_new_post') }}", this.cert_info).then(function (res) {
             if (res.data.success) {
-              alert('정상적으로 생성되었습니다')
-              location.href = '{{ url_for('ca_view', catop=ca_record.catop) }}'
+              alert('정상적으로 생성되었습니다');
+              location.href = '{{ url_for('csr_pending_list') }}';
             } else {
-              alert(res.data.message)
+              alert(res.data.message);
             }
-          })
+          }).catch(function(err) {
+              alert('CSR 생성 중 통신 오류가 발생했습니다.');
+          });
         }
       }
     })

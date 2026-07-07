@@ -7,19 +7,34 @@
 {% endblock %}
 
 {% block left_menu %}
-    <li class="nav-item">
-        <a href="{{ url_for('ca_view', catop=ca_record.catop, filter_type='CERTIFICATED') }}" class="nav-link {{ certificate_status('CERTIFICATED') }}" aria-current="page">
-            <svg class="bi me-2" width="16" height="16"><use xlink:href="#home"></use></svg>서명완료
+    <li class="m3-drawer-item">
+        <a href="/">
+            <span class="material-symbols-outlined">account_balance</span>인증기관(CA) 목록
         </a>
     </li>
-    <li>
-        <a href="{{ url_for('ca_view', catop=ca_record.catop, filter_type='REVOKE') }}" class="nav-link {{ certificate_status('REVOKE') }}">
-            <svg class="bi me-2" width="16" height="16"><use xlink:href="#speedometer2"></use></svg>폐기됨
+    <li class="m3-drawer-item">
+        <a href="{{ url_for('csr_pending_list') }}">
+            <span class="material-symbols-outlined">pending_actions</span>CSR 대기 목록
         </a>
     </li>
-    <li>
-        <a href="{{ url_for('ca_view', catop=ca_record.catop, filter_type='CSR') }}" class="nav-link {{ certificate_status('CSR') }}">
-            <svg class="bi me-2" width="16" height="16"><use xlink:href="#speedometer2"></use></svg>대기중
+    
+    <div style="border-top: 1px solid var(--md-sys-color-outline-variant); margin: 12px 16px; padding-top: 12px;"></div>
+    <div style="font-size: 11px; font-weight: 700; color: var(--md-sys-color-outline); padding: 0 16px 8px 16px; letter-spacing: 0.8px; text-transform: uppercase;">CA 상세 메뉴</div>
+
+    <li class="m3-drawer-item {{ 'active' if request.args.get('filter_type', 'CERTIFICATED') == 'CERTIFICATED' and request.endpoint == 'ca_view' else '' }}">
+        <a href="{{ url_for('ca_view', catop=ca_record.catop, filter_type='CERTIFICATED') }}">
+            <span class="material-symbols-outlined">verified_user</span>서명완료
         </a>
     </li>
+    <li class="m3-drawer-item {{ 'active' if request.args.get('filter_type') == 'REVOKE' else '' }}">
+        <a href="{{ url_for('ca_view', catop=ca_record.catop, filter_type='REVOKE') }}">
+            <span class="material-symbols-outlined">cancel</span>폐기됨
+        </a>
+    </li>
+    <li class="m3-drawer-item {{ 'active' if request.args.get('filter_type') == 'CSR' else '' }}">
+        <a href="{{ url_for('ca_view', catop=ca_record.catop, filter_type='CSR') }}">
+            <span class="material-symbols-outlined">pending_actions</span>대기중
+        </a>
+    </li>
+
 {% endblock %}

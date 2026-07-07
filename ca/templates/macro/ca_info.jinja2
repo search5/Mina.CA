@@ -1,40 +1,48 @@
-<div class="row text-left">
-  <div class="col-12 text-left">
-    <h4>인증기관 정보</h4>
-    <div class="row">
-      <div class="col-2 p-2 bg-light"><span class="font-weight-bold">인증기관명</span></div>
-      <div class="col-6 p-2">{{ ca_record.catitle }}</div>
-      <div class="col-2 p-2 bg-light"><span class="font-weight-bold">국가코드</span></div>
-      <div class="col-2 p-2">{{ ca_record.country_name }}</div>
+<div class="m3-card m3-card-elevated" style="margin-bottom: 32px;">
+  <h3 class="m3-card-title" style="display: flex; align-items: center; gap: 8px;">
+    <span class="material-symbols-outlined" style="color: var(--md-sys-color-primary);">info</span>
+    인증기관 정보
+  </h3>
+  
+  <div class="m3-grid-details">
+    <div class="m3-detail-item">
+      <div class="m3-detail-label">인증기관명</div>
+      <div class="m3-detail-value">{{ ca_record.catitle }}</div>
     </div>
-  <div class="row">
-      <div class="col-2 p-2 bg-light"><span class="font-weight-bold">CA Dir</span></div>
-      <div class="col-2 p-2">{{ ca_record.catop }}</div>
-      <div class="col-2 p-2 bg-light"><span class="font-weight-bold">CA 타입</span></div>
-      <div class="col-2 p-2">{{ ca_record.catype }}</div>
-      <div class="col-2 p-2 bg-light"><span class="font-weight-bold">시/도</span></div>
-      <div class="col-2 p-2">{{ ca_record.province_name }}</div>
+    <div class="m3-detail-item">
+      <div class="m3-detail-label">CA 타입</div>
+      <div class="m3-detail-value">
+        {% if ca_record.catype == 'ROOT' %}
+          <span class="m3-chip m3-chip-active">Root CA</span>
+        {% else %}
+          <span class="m3-chip m3-chip-csr">Intermediate CA</span>
+        {% endif %}
+      </div>
     </div>
-    <div class="row">
-
-      <div class="col-2 p-2 bg-light"><span class="font-weight-bold">시/군/구</span></div>
-      <div class="col-2 p-2">{{ ca_record.locality_name }}</div>
-      <div class="col-2 p-2 bg-light"><span class="font-weight-bold">조직명</span></div>
-      <div class="col-2 p-2">{{ ca_record.organization_name }}</div>
-      <div class="col-2 p-2 bg-light"><span class="font-weight-bold">부서</span></div>
-      <div class="col-2 p-2">{{ ca_record.organizational_unit_name }}</div>
+    <div class="m3-detail-item">
+      <div class="m3-detail-label">CA 도메인</div>
+      <div class="m3-detail-value"><code>{{ ca_record.common_name }}</code></div>
     </div>
-    <div class="row">
-      <div class="col-2 p-2 bg-light"><span class="font-weight-bold">담당자 이메일</span></div>
-      <div class="col-4 p-2">{{ ca_record.email_address }}</div>
-      <div class="col-2 p-2 bg-light"><span class="font-weight-bold">CA 도메인</span></div>
-      <div class="col-4 p-2">{{ ca_record.common_name }}</div>
+    <div class="m3-detail-item">
+      <div class="m3-detail-label">국가코드 / 위치</div>
+      <div class="m3-detail-value">{{ ca_record.country_name }} / {{ ca_record.province_name }}</div>
     </div>
-    <div class="row">
-      <div class="col-2 p-2 bg-light"><span class="font-weight-bold">유효기간(일단위)</span></div>
-      <div class="col-4 p-2">{{ ca_record.cadays }} <span class="text-danger">(인증서 만료까지 {{ left_ca_days }} 남았습니다)</span></div>
-      <div class="col-2 p-2 bg-light"><span class="font-weight-bold">생성일자</span></div>
-      <div class="col-4 p-2">{{ ca_record.created_date }}</div>
+    <div class="m3-detail-item">
+      <div class="m3-detail-label">조직 / 부서</div>
+      <div class="m3-detail-value">{{ ca_record.organization_name }} ({{ ca_record.organizational_unit_name }})</div>
+    </div>
+    <div class="m3-detail-item">
+      <div class="m3-detail-label">담당자 이메일</div>
+      <div class="m3-detail-value">{{ ca_record.email_address }}</div>
+    </div>
+    <div class="m3-detail-item" style="grid-column: span 2;">
+      <div class="m3-detail-label">남은 유효기간 (만료일)</div>
+      <div class="m3-detail-value" style="display: flex; align-items: center; gap: 8px;">
+        <span>{{ ca_record.cadays }}일</span>
+        <span style="font-size: 13px; color: var(--md-sys-color-error); font-weight: 500;">
+          (만료까지 {{ left_ca_days }} 남음)
+        </span>
+      </div>
     </div>
   </div>
 </div>

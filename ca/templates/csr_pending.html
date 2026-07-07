@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+{% block main %}
+<div class="m3-flex-between">
+  <div>
+    <h1 class="m3-page-title">CSR 대기 목록</h1>
+    <p class="m3-page-subtitle">여러 CA에 대해 발급 요청 대기 중인 모든 CSR(인증서 서명 요청)을 목록에서 즉시 검토하고 승인합니다.</p>
+  </div>
+  <div style="display: flex; gap: 8px;">
+    <button class="m3-btn m3-btn-outlined" onclick="openCsrUploadModal()">
+      <span class="material-symbols-outlined">upload_file</span>
+      CSR 파일 업로드
+    </button>
+    <a href="{{ url_for('ca_csr_new') }}" class="m3-btn m3-btn-filled">
+      <span class="material-symbols-outlined">add_box</span>
+      요청서 생성 (CSR)
+    </a>
+  </div>
+</div>
+
+<div class="m3-card m3-card-elevated">
+  <div class="m3-table-container">
+    <table class="m3-table">
+      <thead>
+        <tr>
+          <th>서비스명</th>
+          <th>도메인(Common Name)</th>
+          <th>담당자 이메일</th>
+          <th>유효기간</th>
+          <th>요청일시</th>
+          <th style="text-align: right; width: 220px;">작업</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in pending_certs %}
+          <tr>
+            <td><strong>{{ row.cert.cert_title }}</strong></td>
+            <td><code>{{ row.cert.common_name }}</code></td>
+            <td>{{ row.cert.email_address or '-' }}</td>
+            <td>{{ row.cert.cert_days }}일</td>
+            <td>{{ row.cert.created_date.strftime('%Y-%m-%d %H:%M') if row.cert.created_date else '-' }}</td>
+            <td style="text-align: right;">
+              <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <a href="{{ url_for('certificate_view', cert_id=row.cert.id) }}" class="m3-btn m3-btn-outlined" style="padding: 0 10px; height: 32px; font-size: 13px; line-height: 32px; text-decoration: none;">
+                  상세
+                </a>
+                <button class="m3-btn m3-btn-filled" onclick="openDirectSignModal('{{ row.cert.id }}', '{{ row.cert.cert_title }}')" style="padding: 0 10px; height: 32px; font-size: 13px;">
+                  승인
+                </button>
+                <button class="m3-btn m3-btn-outlined" onclick="executeDirectDelete('{{ row.cert.id }}')" style="padding: 0 10px; height: 32px; font-size: 13px; border-color: var(--md-sys-color-error); color: var(--md-sys-color-error);">
+                  삭제
+                </button>
+              </div>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--md-sys-color-outline); padding: 40px 0;">
+              <span class="material-symbols-outlined" style="font-size: 48px; margin-bottom: 8px;">done_all</span>
+              <div>대기 중인 CSR 서명 요청이 없습니다. 모든 요청이 승인되었습니다.</div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- M3 CSR 파일 직접 업로드 다이얼로그 모달 -->
+<div class="m3-dialog-overlay" id="csr_upload_modal">
+  <div class="m3-dialog">
+    <h3 class="m3-dialog-title">CSR 파일 직접 업로드</h3>
+    <div class="m3-dialog-content">
+      <p style="margin-bottom: 12px; font-size: 14px; color: var(--md-sys-color-on-surface-variant);">
+        외부에서 생성한 CSR 파일(.csr 또는 .pem)을 업로드하여 발급 대기 요청으로 등록합니다.
+      </p>
+      
+      <!-- OpenSSL CSR 생성 명령어 가이드 -->
+      <div style="background-color: var(--md-sys-color-surface-variant); padding: 10px; border-radius: 8px; margin-bottom: 16px; font-size: 11.5px; color: var(--md-sys-color-on-surface-variant); border: 1px solid var(--md-sys-color-outline-variant);">
+        <div style="font-weight: 600; display: flex; align-items: center; gap: 4px; margin-bottom: 4px;">
+          <span class="material-symbols-outlined" style="font-size: 15px;">info</span>
+          OpenSSL 수동 CSR 생성 명령어 도움말
+        </div>
+        <pre style="font-family: monospace; background-color: rgba(0, 0, 0, 0.05); padding: 6px 8px; border-radius: 4px; overflow-x: auto; margin: 0; white-space: pre-wrap; word-break: break-all; line-height: 1.45;"># 1. 2048bit 개인키 생성
+openssl genrsa -out domain.key 2048
+
+# 2. SAN(도메인/IP)이 포함된 CSR 생성 (OpenSSL 1.1.1+)
+openssl req -new -key domain.key -out domain.csr \
+  -subj "/CN=example.com" \
+  -addext "subjectAltName = DNS:example.com, DNS:www.example.com, IP:127.0.0.1"</pre>
+      </div>
+      
+      <div class="m3-form-group">
+        <label class="m3-label" for="upload_cert_title">인증 서비스명 (생략 시 도메인명)</label>
+        <input type="text" id="upload_cert_title" class="m3-input" placeholder="예: 외부 업로드 서비스">
+      </div>
+
+      <div class="m3-form-group">
+        <label class="m3-label" for="upload_cert_days">유효 기간 (일단위)</label>
+        <input type="number" id="upload_cert_days" class="m3-input" value="365" min="1" max="398">
+      </div>
+
+      <div class="m3-form-group">
+        <label class="m3-label" for="upload_csr_file">CSR 파일 선택 (.csr, .pem, .txt)</label>
+        <input type="file" id="upload_csr_file" class="m3-input" accept=".csr,.pem,.txt" style="padding: 10px;">
+      </div>
+    </div>
+    <div class="m3-dialog-actions">
+      <button type="button" class="m3-btn m3-btn-outlined" onclick="closeCsrUploadModal()">취소</button>
+      <button type="button" class="m3-btn m3-btn-filled" onclick="executeCsrUpload()">
+        <span class="material-symbols-outlined" style="font-size: 18px;">upload</span>
+        업로드 및 등록
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- M3 목록 즉시 서명 승인 다이얼로그 모달 -->
+<div class="m3-dialog-overlay" id="direct_sign_modal">
+  <div class="m3-dialog">
+    <h3 class="m3-dialog-title">인증 요청 승인</h3>
+    <div class="m3-dialog-content">
+      <p style="margin-bottom: 16px;">서명을 진행할 상위 CA를 지정하고, 서명용 비밀키 암호를 입력하여 <strong id="sign_target_title"></strong> 인증서 발급을 최종 승인합니다.</p>
+      
+      <div class="m3-form-group" style="margin-bottom: 16px;">
+        <label class="m3-label" for="sign_ca_id">서명에 사용할 인증기관(CA)</label>
+        <select id="sign_ca_id" class="m3-select">
+          <option value="">서명 CA를 선택해 주세요</option>
+          {% for ca in ca_list_record %}
+            <option value="{{ ca.catop }}">{{ ca.catitle }} ({{ ca.common_name }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="m3-form-group">
+        <label class="m3-label" for="sign_ca_pass">CA 비밀키 비밀번호</label>
+        <input type="password" id="sign_ca_pass" class="m3-input" placeholder="비밀번호 입력">
+      </div>
+    </div>
+    <div class="m3-dialog-actions">
+      <button type="button" class="m3-btn m3-btn-outlined" onclick="closeDirectSignModal()">취소</button>
+      <button type="button" class="m3-btn m3-btn-filled" onclick="executeDirectSign()">
+        <span class="material-symbols-outlined" style="font-size: 18px;">done</span>
+        승인 서명 실행
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js" integrity="sha256-S1J4GVHHDMiirir9qsXWc8ZWw74PHHafpsHp5PXtjTs=" crossorigin="anonymous"></script>
+{% endblock %}
+
+{% block footer_js %}
+  <script>
+  var currentCertId = null;
+
+  function openCsrUploadModal() {
+      document.getElementById('upload_cert_title').value = '';
+      document.getElementById('upload_cert_days').value = '365';
+      document.getElementById('upload_csr_file').value = '';
+      document.getElementById('csr_upload_modal').style.display = 'flex';
+  }
+
+  function closeCsrUploadModal() {
+      document.getElementById('csr_upload_modal').style.display = 'none';
+  }
+
+  function executeCsrUpload() {
+      var fileInput = document.getElementById('upload_csr_file');
+      if (fileInput.files.length === 0) {
+          alert('업로드할 CSR 파일을 선택해주세요.');
+          return;
+      }
+      
+      var file = fileInput.files[0];
+      var title = document.getElementById('upload_cert_title').value;
+      var days = document.getElementById('upload_cert_days').value;
+      
+      var formData = new FormData();
+      formData.append('csr_file', file);
+      formData.append('cert_title', title);
+      formData.append('cert_days', days);
+      
+      closeCsrUploadModal();
+      
+      axios.post("/csr/upload", formData, {
+          headers: {
+              'Content-Type': 'multipart/form-data'
+          }
+      }).then(function(resp) {
+          if (resp.data.success) {
+              alert(resp.data.message);
+              location.reload();
+          } else {
+              alert(resp.data.message);
+          }
+      }).catch(function(err) {
+          alert('CSR 파일 업로드 중 서버 통신 오류가 발생했습니다.');
+      });
+  }
+
+  function openDirectSignModal(cert_id, cert_title) {
+      currentCertId = cert_id;
+      document.getElementById('sign_target_title').innerText = cert_title;
+      document.getElementById('sign_ca_id').value = '';
+      document.getElementById('sign_ca_pass').value = '';
+      document.getElementById('direct_sign_modal').style.display = 'flex';
+  }
+
+  function closeDirectSignModal() {
+      document.getElementById('direct_sign_modal').style.display = 'none';
+      currentCertId = null;
+  }
+
+  function executeDirectSign() {
+      if (!currentCertId) return;
+      
+      var ca_id = document.getElementById('sign_ca_id').value;
+      var ca_pass = document.getElementById('sign_ca_pass').value;
+      
+      if (!ca_id) {
+          alert('서명에 사용할 CA를 지정하셔야 합니다.');
+          return;
+      }
+      if (!ca_pass) {
+          alert('CA 비밀키 비밀번호를 입력하셔야 합니다.');
+          return;
+      }
+      
+      closeDirectSignModal();
+      
+      axios.post("/certificate/" + currentCertId + "/sign", {
+          ca_id: ca_id,
+          capass: ca_pass
+      }).then(function(resp) {
+          if (resp.data.success) {
+              alert(resp.data.message);
+              location.reload();
+          } else {
+              alert(resp.data.message);
+          }
+      }).catch(function(err) {
+          alert('서명 처리 중 통신 에러가 발생했습니다.');
+      });
+  }
+
+  function executeDirectDelete(cert_id) {
+      if (confirm('이 대기 중인 CSR 요청서를 정말로 삭제하시겠습니까?')) {
+          axios.delete("/certificate/" + cert_id).then(function(resp) {
+              if (resp.data.success) {
+                  alert(resp.data.message);
+                  location.reload();
+              } else {
+                  alert(resp.data.message);
+              }
+          }).catch(function(err) {
+              alert('삭제 통신 중 에러가 발생했습니다.');
+          });
+      }
+  }
+  </script>
+{% endblock %}

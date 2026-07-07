@@ -1,11 +1,7 @@
 flask
 flask-login
-sqlalchemy
-pexpect
-psycopg2-binary
 wtforms
 paginate
-paginate-sqlalchemy
-sqlalchemy-stubs
 python-slugify[unicode]
-pyopenssl
+cryptography
+google-cloud-firestore

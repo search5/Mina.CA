@@ -1,138 +1,141 @@
 {% extends "base.html" %}
 
 {% block main %}
-  <div class="starter-template">
-    <div class="row">
-      <div class="col-6">
-        <h4>인증기관 추가</h4>
-        <form>
-          <div class="form-group row mt-2">
-            <label for="inputCAtitle"
-                   class="col-sm-3 col-form-label">{{ form.catitle.label }}</label>
-            <div class="col-sm-9">
-              {{ form.catitle(class_="form-control", id="inputCAtitle", placeholder="인증기관명", **{"v-model": "ca_info.catitle"}) }}
-            </div>
-          </div>
-          <div class="form-group row mt-2">
-            <label for="inputCATop"
-                   class="col-sm-3 col-form-label">{{ form.catop.label }}</label>
-            <div class="col-sm-9">
-              {{ form.catop(class_="form-control", id="inputCATop", placeholder="CA 디렉터리", **{"v-model": "ca_info.catop"}) }}
-            </div>
-          </div>
-          <div class="form-group row mt-2">
-            <label for="inputCAType"
-                   class="col-sm-3 col-form-label">{{ form.catype.label }}</label>
-            <div class="col-sm-9">
-              {{ form.catype(class_="form-control", id="inputCAType", **{"v-model": "ca_info.catype"}) }}
-            </div>
-          </div>
-          <div class="form-group row mt-2">
-            <label for="inputCAPass"
-                   class="col-sm-3 col-form-label">{{ form.capass.label }}</label>
-            <div class="col-sm-9">
-              {{ form.capass(class_="form-control", id="inputCAPass", placeholder="루트인증서 비밀키", **{"v-model": "ca_info.capass"}) }}
-            </div>
-          </div>
-          <div class="form-group row mt-2">
-            <label for="inputCountryName"
-                   class="col-sm-3 col-form-label">{{ form.country_name.label }}</label>
-            <div class="col-sm-9">
-              {{ form.country_name(class_="form-control", id="inputCountryName", placeholder="2자리 국가코드", **{"v-model": "ca_info.country_name"}) }}
-            </div>
-          </div>
-          <div class="form-group row mt-2">
-            <label for="inputProvinceName"
-                   class="col-sm-3 col-form-label">{{ form.province_name.label }}</label>
-            <div class="col-sm-9">
-              {{ form.province_name(class_="form-control", id="inputProvinceName", placeholder="시/도", **{"v-model": "ca_info.province_name"}) }}
-            </div>
-          </div>
-          <div class="form-group row mt-2">
-            <label for="inputLocalityName"
-                   class="col-sm-3 col-form-label">{{ form.locality_name.label }}</label>
-            <div class="col-sm-9">
-              {{ form.locality_name(class_="form-control", id="inputLocalityName", placeholder="구/군/시", **{"v-model": "ca_info.locality_name"}) }}
-            </div>
-          </div>
-          <div class="form-group row mt-2">
-            <label for="inputOrganizationName"
-                   class="col-sm-3 col-form-label">{{ form.organization_name.label }}</label>
-            <div class="col-sm-9">
-              {{ form.organization_name(class_="form-control", id="inputOrganizationName", placeholder="회사명", **{"v-model": "ca_info.organization_name"}) }}
-            </div>
-          </div>
-          <div class="form-group row mt-2">
-            <label for="inputOrganizationalUnitName"
-                   class="col-sm-3 col-form-label">{{ form.organizational_unit_name.label }}</label>
-            <div class="col-sm-9">
-              {{ form.organizational_unit_name(class_="form-control", id="inputOrganizationalUnitName", placeholder="부서명", **{"v-model": "ca_info.organizational_unit_name"}) }}
-            </div>
-          </div>
-          <div class="form-group row mt-2">
-            <label for="inputCommonName"
-                   class="col-sm-3 col-form-label">{{ form.common_name.label }}</label>
-            <div class="col-sm-9">
-              {{ form.common_name(class_="form-control", id="inputCommonName", placeholder="도메인명", **{"v-model": "ca_info.common_name"}) }}
-            </div>
-          </div>
-          <div class="form-group row mt-2">
-            <label for="inputEmailAddress"
-                   class="col-sm-3 col-form-label">{{ form.email_address.label }}</label>
-            <div class="col-sm-9">
-              {{ form.email_address(class_="form-control", id="inputEmailAddress", placeholder="담당자 이메일", **{"v-model": "ca_info.email_address"}) }}
-            </div>
-          </div>
-          <div class="form-group row mt-2">
-            <label for="inputCADays"
-                   class="col-sm-3 col-form-label">{{ form.cadays.label }}</label>
-            <div class="col-sm-9">
-              {{ form.cadays(type="number", class_="form-control", id="inputCADays", placeholder="인증기관 유효기간(D)", **{"v-model": "ca_info.cadays"}) }}
-            </div>
-          </div>
-          <div class="form-group row mt-2">
-            <div class="col-sm-10">
-              <button type="button" class="btn btn-primary" @click.prevent="submit">추가</button>
-            </div>
-          </div>
-        </form>
+<div class="m3-flex-between">
+  <div>
+    <h1 class="m3-page-title">새 인증기관(CA) 추가</h1>
+    <p class="m3-page-subtitle">최상위(Root) 혹은 중간(Intermediate) 인증기관을 생성하고 체인을 구축합니다.</p>
+  </div>
+</div>
+
+<div class="m3-card m3-card-elevated" style="max-width: 800px; margin: 0 auto;">
+  <form>
+    <div class="m3-form-grid">
+      <!-- 인증기관명 -->
+      <div class="m3-form-group m3-form-group-full">
+        <label class="m3-label" for="inputCAtitle">{{ form.catitle.label }}</label>
+        {{ form.catitle(class_="m3-input", id="inputCAtitle", placeholder="예: Mina Root CA", **{"v-model": "ca_info.catitle"}) }}
+      </div>
+
+      <!-- CA 디렉터리 (고유 ID 역할) -->
+      <div class="m3-form-group">
+        <label class="m3-label" for="inputCATop">{{ form.catop.label }}</label>
+        {{ form.catop(class_="m3-input", id="inputCATop", placeholder="예: mina_root_ca", **{"v-model": "ca_info.catop"}) }}
+        <span class="m3-helper-text">CA를 식별하는 고유 디렉터리 식별자입니다.</span>
+      </div>
+
+      <!-- CA 타입 -->
+      <div class="m3-form-group">
+        <label class="m3-label" for="inputCAType">{{ form.catype.label }}</label>
+        {{ form.catype(class_="m3-select", id="inputCAType", **{"v-model": "ca_info.catype"}) }}
+      </div>
+
+      <!-- 상위 CA 선택 -->
+      <div class="m3-form-group m3-form-group-full" v-show="ca_info.catype === 'INTERMEDIATE'">
+        <label class="m3-label" for="inputParentId">{{ form.parent_id.label }}</label>
+        {{ form.parent_id(class_="m3-select", id="inputParentId", **{"v-model": "ca_info.parent_id"}) }}
+        <span class="m3-helper-text" style="color: var(--md-sys-color-primary);">중간 CA 서명을 담당할 상위 CA를 반드시 선택하세요.</span>
+      </div>
+
+      <!-- 비밀번호 -->
+      <div class="m3-form-group m3-form-group-full">
+        <label class="m3-label" for="inputCAPass">{{ form.capass.label }}</label>
+        {{ form.capass(class_="m3-input", id="inputCAPass", placeholder="개인키 암호화에 사용할 안전한 비밀번호 입력", **{"v-model": "ca_info.capass"}) }}
+      </div>
+
+      <!-- 국가 코드 -->
+      <div class="m3-form-group">
+        <label class="m3-label" for="inputCountryName">{{ form.country_name.label }}</label>
+        {{ form.country_name(class_="m3-input", id="inputCountryName", placeholder="예: KR", **{"v-model": "ca_info.country_name"}) }}
+      </div>
+
+      <!-- 시/도 -->
+      <div class="m3-form-group">
+        <label class="m3-label" for="inputProvinceName">{{ form.province_name.label }}</label>
+        {{ form.province_name(class_="m3-input", id="inputProvinceName", placeholder="예: Seoul", **{"v-model": "ca_info.province_name"}) }}
+      </div>
+
+      <!-- 구/군/시 -->
+      <div class="m3-form-group">
+        <label class="m3-label" for="inputLocalityName">{{ form.locality_name.label }}</label>
+        {{ form.locality_name(class_="m3-input", id="inputLocalityName", placeholder="예: Gangnam-gu", **{"v-model": "ca_info.locality_name"}) }}
+      </div>
+
+      <!-- 회사명 -->
+      <div class="m3-form-group">
+        <label class="m3-label" for="inputOrganizationName">{{ form.organization_name.label }}</label>
+        {{ form.organization_name(class_="m3-input", id="inputOrganizationName", placeholder="예: Mina Corporation", **{"v-model": "ca_info.organization_name"}) }}
+      </div>
+
+      <!-- 부서명 -->
+      <div class="m3-form-group">
+        <label class="m3-label" for="inputOrganizationalUnitName">{{ form.organizational_unit_name.label }}</label>
+        {{ form.organizational_unit_name(class_="m3-input", id="inputOrganizationalUnitName", placeholder="예: IT Security", **{"v-model": "ca_info.organizational_unit_name"}) }}
+      </div>
+
+      <!-- 도메인(CN) -->
+      <div class="m3-form-group">
+        <label class="m3-label" for="inputCommonName">{{ form.common_name.label }}</label>
+        {{ form.common_name(class_="m3-input", id="inputCommonName", placeholder="예: ca.mina.local", **{"v-model": "ca_info.common_name"}) }}
+      </div>
+
+      <!-- 이메일 -->
+      <div class="m3-form-group">
+        <label class="m3-label" for="inputEmailAddress">{{ form.email_address.label }}</label>
+        {{ form.email_address(class_="m3-input", id="inputEmailAddress", placeholder="예: admin@mina.local", **{"v-model": "ca_info.email_address"}) }}
+      </div>
+
+      <!-- 유효기간 -->
+      <div class="m3-form-group">
+        <label class="m3-label" for="inputCADays">{{ form.cadays.label }}</label>
+        {{ form.cadays(type="number", class_="m3-input", id="inputCADays", placeholder="예: 3650", **{"v-model": "ca_info.cadays"}) }}
       </div>
     </div>
-    {#<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.10/vue.min.js" integrity="sha256-chlNFSVx3TdcQ2Xlw7SvnbLAavAQLO0Y/LBiWX04viY=" crossorigin="anonymous"></script>#}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.10/vue.js" integrity="sha256-ufGElb3TnOtzl5E4c/qQnZFGP+FYEZj5kbSEdJNrw0A=" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js" integrity="sha256-S1J4GVHHDMiirir9qsXWc8ZWw74PHHafpsHp5PXtjTs=" crossorigin="anonymous"></script>
-    <script>
-    new Vue({
-      el: "form",
-      data: {
-        ca_info: {
-          catitle: "",
-          catop: "",
-          catype: "",
-          capass: "",
-          country_name: "",
-          province_name: "",
-          locality_name: "",
-          organization_name: "",
-          organizational_unit_name: "",
-          common_name: "",
-          email_address: "",
-          cadays: ""
+
+    <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+      <a href="{{ url_for('ca_list') }}" class="m3-btn m3-btn-outlined">취소</a>
+      <button type="button" class="m3-btn m3-btn-filled" @click.prevent="submit">
+        <span class="material-symbols-outlined">save</span>
+        인증기관 추가 완료
+      </button>
+    </div>
+  </form>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.10/vue.js" integrity="sha256-ufGElb3TnOtzl5E4c/qQnZFGP+FYEZj5kbSEdJNrw0A=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js" integrity="sha256-S1J4GVHHDMiirir9qsXWc8ZWw74PHHafpsHp5PXtjTs=" crossorigin="anonymous"></script>
+<script>
+new Vue({
+  el: "form",
+  data: {
+    ca_info: {
+      catitle: "",
+      catop: "",
+      catype: "ROOT",
+      parent_id: "",
+      capass: "",
+      country_name: "",
+      province_name: "",
+      locality_name: "",
+      organization_name: "",
+      organizational_unit_name: "",
+      common_name: "",
+      email_address: "",
+      cadays: "3650"
+    }
+  },
+  methods: {
+    submit: function () {
+      axios.post("{{ url_for('ca_add_post') }}", this.ca_info).then(function (res) {
+        if (res.data.success) {
+            alert('정상적으로 생성되었습니다')
+            location.href = '{{ url_for('ca_list') }}'
+        } else {
+            alert(res.data.message)
         }
-      },
-      methods: {
-        submit: function () {
-          axios.post("{{ url_for('ca_add_post') }}", this.ca_info).then(function (res) {
-            if (res.data.success) {
-                alert('정상적으로 생성되었습니다')
-                location.href = '{{ url_for('ca_list') }}'
-            } else {
-                alert(res.data.message)
-            }
-          })
-        }
-      }
-    })
-    </script>
-  </div>
+      })
+    }
+  }
+})
+</script>
 {% endblock %}

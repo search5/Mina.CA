@@ -3,85 +3,78 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="Online CA(Certificate Associate)">
+  <meta name="description" content="Online CA(Certificate Associate) Login - Material Design 3">
   <meta name="author" content="Lee Persy Ji-Ho">
-  <title>Mina.CA - Online CA(Certificate Associate)</title>
-  <!-- Bootstrap core CSS -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.0/css/bootstrap.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css">
-  <!-- Custom styles for this template -->
-<style>
-    a {
-    text-decoration: none;
-}
-.login-page {
-    width: 100%;
-    height: 100vh;
-    display: inline-block;
-    display: flex;
-    align-items: center;
-}
-.form-right i {
-    font-size: 100px;
-}
-</style>
-    </head>
+  <title>Mina.CA - Login</title>
+  <link href="{{ url_for('static', filename='css/material3.css') }}" rel="stylesheet">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      width: 100vw;
+      background-color: var(--md-sys-color-surface-container-low);
+    }
+    .m3-login-container {
+      width: 100%;
+      max-width: 480px;
+      padding: 16px;
+    }
+    .m3-login-card {
+      background-color: var(--md-sys-color-surface);
+      border-radius: var(--md-shape-corner-extra-large);
+      padding: 40px;
+      box-shadow: var(--md-elevation-3);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+  </style>
+</head>
 <body>
-<div class="login-page bg-light">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-10 offset-lg-1">
-              <h3 class="mb-3">Mina.CA Login</h3>
-                <div class="bg-white shadow rounded">
-                    <div class="row">
-                        <div class="col-md-7 pe-0">
-                            <div class="form-left h-100 py-5 px-5">
-                                <form action="" class="row g-4">
-                                        <div class="col-12">
-                                            <label>Username<span class="text-danger">*</span></label>
-                                            <div class="input-group">
-                                                <div class="input-group-text"><i class="bi bi-person-fill"></i></div>
-                                                <input type="text" class="form-control" placeholder="Enter Username">
-                                            </div>
-                                        </div>
 
-                                        <div class="col-12">
-                                            <label>Password<span class="text-danger">*</span></label>
-                                            <div class="input-group">
-                                                <div class="input-group-text"><i class="bi bi-lock-fill"></i></div>
-                                                <input type="text" class="form-control" placeholder="Enter Password">
-                                            </div>
-                                        </div>
-
-                                        <div class="col-sm-6">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="inlineFormCheck">
-                                                <label class="form-check-label" for="inlineFormCheck">Remember me</label>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-sm-6">
-                                            <a href="#" class="float-end text-primary">Forgot Password?</a>
-                                        </div>
-
-                                        <div class="col-12">
-                                            <a href="{{ url_for('ca_list') }}" class="btn btn-primary px-4 float-end mt-4">login</a>
-                                        </div>
-                                </form>
-                            </div>
-                        </div>
-                        <div class="col-md-5 ps-0 d-none d-md-block">
-                            <div class="form-right h-100 bg-primary text-white text-center pt-5">
-                                <img src="{{ url_for('static', filename='img/ca_icon.png') }}" width="200">
-                                <h2 class="fs-1">Mina.CA</h2>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <p class="text-end text-secondary mt-3">&copy; Copyright 2021 Lee Persy Ji-Ho</p>
-            </div>
-        </div>
+<div class="m3-login-container">
+  <div class="m3-login-card">
+    <div style="text-align: center;">
+      <span class="material-symbols-outlined" style="font-size: 64px; color: var(--md-sys-color-primary); margin-bottom: 8px;">shield_lock</span>
+      <h1 class="m3-page-title" style="margin-bottom: 4px;">Mina.CA</h1>
+      <p style="font-size: 14px; color: var(--md-sys-color-on-surface-variant);">웹 기반 사설 인증서 관리 시스템</p>
     </div>
+
+    <form style="display: flex; flex-direction: column; gap: 16px;">
+      <div class="m3-form-group">
+        <label class="m3-label" for="username">사용자명 (Username)</label>
+        <input type="text" id="username" class="m3-input" placeholder="admin" value="admin" readonly>
+      </div>
+
+      <div class="m3-form-group">
+        <label class="m3-label" for="password">비밀번호 (Password)</label>
+        <input type="password" id="password" class="m3-input" placeholder="••••••••" value="••••••••" readonly>
+        <span class="m3-helper-text">현재 계정 정보 확인 단계는 비활성화(생략) 상태입니다.</span>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 14px; margin-top: 8px;">
+        <label style="display: flex; align-items: center; gap: 8px; color: var(--md-sys-color-on-surface-variant); cursor: pointer;">
+          <input type="checkbox" checked style="accent-color: var(--md-sys-color-primary);"> 로그인 상태 유지
+        </label>
+        <a href="#" style="color: var(--md-sys-color-primary); text-decoration: none; font-weight: 500;">계정 찾기</a>
+      </div>
+
+      <div style="margin-top: 16px;">
+        <a href="{{ url_for('ca_list') }}" class="m3-btn m3-btn-filled" style="width: 100%; height: 48px;">
+          <span class="material-symbols-outlined">login</span>
+          관리자 로그인
+        </a>
+      </div>
+    </form>
+
+    <div style="text-align: center; font-size: 12px; color: var(--md-sys-color-outline); margin-top: 16px;">
+      &copy; Copyright 2026 Lee Persy Ji-Ho. All rights reserved.
+    </div>
+  </div>
 </div>
+
 </body>
 </html>
